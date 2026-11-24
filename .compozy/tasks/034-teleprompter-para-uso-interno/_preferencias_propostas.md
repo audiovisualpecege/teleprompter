@@ -1,0 +1,5 @@
+- Programas que rodam IA ou processam mídia no próprio computador partem do princípio de que a máquina é modesta e usam por padrão a opção mais leve que atende.
+- Quando uma automação tem mais de um comportamento viável, o mais estável é o padrão e o outro fica como opção selecionável por quem usa.
+- Uma opção barata que pode servir a algum equipamento ou caso de uso entra na primeira versão, e a equipe decide tirá-la depois de testar no uso real.
+- Funções que fogem do propósito principal da ideia, como avisos ou conversa entre pessoas, ficam fora da primeira versão e viram uma ideia separada no Task Forge.
+- O estado de uma automação aparece também, de forma discreta, para quem é afetado por ela (como quem está sendo gravado), e não só para quem opera.

@@ -65,6 +65,9 @@
 - 24/11/2026 10:39: Zerati via Claude Code registrou um passo da forja: PRD em andamento.
 - 24/11/2026 10:55: Zerati via Claude Code publicou o PRD
 - 24/11/2026 10:55: Zerati via Claude Code registrou um passo da forja: PRD publicado. Próximo: TechSpec.
+- 24/11/2026 10:55: Zerati via Claude Code registrou um passo da forja: TechSpec em andamento.
+- 24/11/2026 11:16: Zerati via Claude Code publicou o TechSpec
+- 24/11/2026 11:17: Zerati via Claude Code registrou um passo da forja: TechSpec publicada. Próximo: tarefas.
 
 ## Perguntas da forja
 
@@ -141,3 +144,27 @@
   - c) Controle e aviso grande no TP só na falha: Em funcionamento normal o TP mostra só o texto. Quando a voz falha, aparece nas saídas um aviso bem visível por cima do texto, além do alerta na tela de controle.
 - Resposta de Zerati em 24/11/2026 10:47:
   - Selecionadas: Controle e um sinal discreto no TP
+
+### pf_qhriz7vqbp: Qual reconhecedor de voz o TP usa para acompanhar a leitura? Pesquisei os dois candidatos. Na nota do briefing o Parakeet aparece como a opção leve, mas pela pesquisa ele é o mais pesado: o modelo que entende português tem 600 milhões de parâmetros, ocupa cerca de 640 MB e trabalha em trechos de uns 2 segundos, não palavra a palavra. O Vosk pequeno em português ocupa 31 MB e devolve as palavras enquanto a pessoa fala. Ele erra mais em fala livre (cerca de 1 palavra em 3), mas aqui o TP só precisa reconhecer o texto do roteiro: o vocabulário fica restrito às palavras dele, e o texto avança pelas palavras que batem. Em qualquer opção, o reconhecedor fica atrás de uma peça trocável, e a primeira tarefa mede precisão e atraso com gravações reais da equipe. O modelo vai dentro do instalador, para a voz funcionar sem internet.
+
+- Destinatário: Felipio
+- Status: respondida
+- Modo: escolha única
+- Opções:
+  - a) Vosk pequeno em português (Recomendado): Leve (31 MB no instalador), devolve palavras enquanto a pessoa fala, o que permite responder em menos de 1 segundo, e roda bem num computador modesto com duas saídas abertas. Roda dentro do próprio programa, sem peça separada para Windows e Mac. Precisão menor em fala livre, compensada por procurar só as palavras do roteiro.
+  - b) Parakeet v3: Mais preciso em português, mas o instalador cresce uns 640 MB e o texto anda em trechos de cerca de 2 segundos, o que tende a passar do limite de 1 segundo e a pesar no processador de um computador modesto, com risco de trancos na rolagem.
+  - c) Os dois, escolhível na tela de voz: Vosk como padrão e Parakeet como opção para computadores mais fortes. Instalador perto de 700 MB e o dobro de testes e ajustes. Dá para decidir depois, porque a peça é trocável.
+- Resposta de Zerati em 24/11/2026 10:58:
+  - Selecionadas: Os dois, escolhível na tela de voz
+
+### pf_fa2hypqjcd: Anotado: Vosk como padrão e Parakeet escolhível na tela de voz. Agora uma dúvida do PRD que só quem conhece os aparelhos responde: alguma montagem de TP da equipe precisa de inversão vertical (texto de cabeça para baixo no monitor), além da horizontal? Isso depende de como o monitor fica preso sob o vidro. Se sim, cada saída ganha a opção "Inverter vertical", independente do "Espelhar".
+
+- Destinatário: Felipio
+- Status: respondida
+- Modo: escolha única
+- Opções:
+  - a) Incluir as duas inversões por saída (Recomendado): Cada saída tem "Espelhar" (horizontal) e "Inverter vertical", ligados e desligados separadamente e guardados por monitor. Custa pouco e cobre qualquer montagem, inclusive aparelhos que a equipe venha a comprar.
+  - b) Só o espelhamento horizontal: Como está no PRD: cada saída tem só "Espelhar". Tela de saídas mais simples; se um aparelho novo pedir inversão vertical, entra numa versão seguinte.
+- Resposta de Zerati em 24/11/2026 10:59:
+  - Selecionadas: Incluir as duas inversões por saída
+  - Nota: qualquer coisa depois de teste a gente tira e deixa só um
