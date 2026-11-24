@@ -4,7 +4,7 @@
  * acrescentam o `AppStore`, o motor de rolagem, as saídas e a voz.
  */
 import * as electron from 'electron';
-import { app, ipcMain, Menu, nativeTheme } from 'electron';
+import { app, ipcMain, Menu, nativeTheme, protocol } from 'electron';
 import type { ClockPong } from '@shared/ipc';
 import { processNow } from '@shared/motion';
 import icon from '../../build/icons/256x256.png?asset';
@@ -12,10 +12,13 @@ import { catchUnexpected, logEvent, setupLog } from './log';
 import { createElectronPlatform } from './platform';
 import { installMainTestHooks, registerTestHook } from './test-hooks';
 import { createControlWindow } from './windows';
+import { handleModelScheme, modelsDir, registerModelScheme } from './models';
 import type { WindowLike } from './platform';
 
 setupLog(app.getPath('userData'));
 catchUnexpected(process);
+// Modelo do Vosk servido do disco à janela de controle (precisa ser registrado antes do `ready`).
+registerModelScheme(protocol);
 
 // Tema Noite, sempre: menus e diálogos do sistema ficam escuros, sem seguir a preferência do sistema.
 nativeTheme.themeSource = 'dark';
@@ -50,6 +53,10 @@ if (!app.requestSingleInstanceLock()) {
   void app.whenReady().then(() => {
     // No Windows a barra de menu nativa seria clara: o programa não tem menu.
     if (process.platform !== 'darwin') Menu.setApplicationMenu(null);
+    handleModelScheme(
+      protocol,
+      modelsDir({ isPackaged: app.isPackaged, resourcesPath: process.resourcesPath, appPath: app.getAppPath() }),
+    );
     const platform = createElectronPlatform(electron);
     logEvent('app.start', { version: app.getVersion(), platform: process.platform, arch: process.arch });
     controlWindow = createControlWindow(platform, {

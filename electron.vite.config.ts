@@ -43,6 +43,31 @@ export function buildDefines(mode: string): Record<string, string> {
   };
 }
 
+/**
+ * Código do Worker do Vosk (ADR-007). O `vosk-browser` traz o Worker embutido em base64 e
+ * o abre como `blob:`, que herda a política de conteúdo da janela de controle; o
+ * WebAssembly dele usa `new Function` (embind) e seria bloqueado. Este módulo virtual
+ * extrai o mesmo código para virar um arquivo do programa (`vosk-worker.ts`), um Worker
+ * com URL própria em que a janela não precisa liberar `unsafe-eval`.
+ */
+export const VOSK_WORKER_MODULE = 'virtual:vosk-worker';
+export function voskWorkerCode(): Plugin {
+  const resolved = `\0${VOSK_WORKER_MODULE}`;
+  return {
+    name: 'tp-vosk-worker',
+    resolveId: (id) => (id === VOSK_WORKER_MODULE ? resolved : null),
+    load(id) {
+      if (id !== resolved) return null;
+      const lib = readFileSync(resolve(root, 'node_modules/vosk-browser/dist/vosk.js'), 'utf8');
+      const b64 = /createBase64WorkerFactory\('([A-Za-z0-9+/=]+)'/.exec(lib)?.[1];
+      if (!b64) throw new Error('Não achei o Worker do vosk-browser');
+      // Igual ao que o vosk-browser faz antes de criar o blob: descarta a primeira linha.
+      const source = Buffer.from(b64, 'base64').toString('latin1');
+      return source.substring(source.indexOf('\n', 10) + 1);
+    },
+  };
+}
+
 export const aliases = {
   '@chiaro': resolve(root, 'design-system/chiaro'),
   '@shared': resolve(root, 'src/shared'),
@@ -59,7 +84,13 @@ export default defineConfig(({ mode }) => {
       resolve: { alias: aliases },
       build: {
         outDir: resolve(root, out, 'main'),
-        rollupOptions: { input: { index: resolve(root, 'src/main/index.ts') } },
+        rollupOptions: {
+          input: {
+            index: resolve(root, 'src/main/index.ts'),
+            // Corpo do utilityProcess do Parakeet (ADR-007), aberto só quando ele está ativo.
+            'parakeet-host': resolve(root, 'src/main/parakeet-host.ts'),
+          },
+        },
       },
     },
     preload: {
@@ -83,6 +114,7 @@ export default defineConfig(({ mode }) => {
       define,
       resolve: { alias: aliases },
       plugins: [react()],
+      worker: { format: 'iife', plugins: () => [voskWorkerCode()] },
       server: { fs: { allow: [root] } },
       build: {
         outDir: resolve(root, out, 'renderer'),

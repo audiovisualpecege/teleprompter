@@ -202,10 +202,15 @@ export interface OutputBridge {
 export const ASR_PCM_CHANNEL = 'asr:pcm';
 /** Áudio mono a 16 kHz. */
 export const ASR_PCM_SAMPLE_RATE = 16000;
-export type AsrPcmRequest = Float32Array;
+/**
+ * O áudio vai com o instante do fim do pedaço (relógio comum `epochNow`), para que a
+ * resposta traga o `audioEndMs` e o motor meça o atraso. `stop` esvazia o buffer.
+ */
+export type AsrPcmRequest = { pcm: Float32Array; endMs: number } | { stop: true };
 export type AsrPcmResponse =
   | { words: string[]; final: boolean; audioEndMs: number }
-  | { fault: EngineFault; detail?: string };
+  | { fault: EngineFault; detail?: string }
+  | { ready: true };
 
 /** Prefixo dos canais de teste, que só existem no build de teste. */
 export const TEST_CHANNEL_PREFIX = 'test:';

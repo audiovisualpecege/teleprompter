@@ -1,0 +1,60 @@
+# Prova da voz nas três plataformas (TechSpec, "Abordagem de testes"; tarefa 2):
+# baixa os modelos, roda o Vosk no Worker e o Parakeet no utilityProcess dentro de um
+# Electron real, com as fixtures de tests/fixtures/voz/, e guarda as medições.
+# Roda toda noite e sob demanda. O Parakeet (IT-015) só roda aqui, por tamanho.
+name: Voz
+
+on:
+  schedule:
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  voz:
+    name: Voz ${{ matrix.name }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Windows x64
+            os: windows-latest
+          - name: Mac x64
+            os: macos-15-intel
+          - name: Mac arm64
+            os: macos-latest
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Modelos em cache
+        uses: actions/cache@v4
+        with:
+          path: .cache/modelos
+          key: modelos-${{ hashFiles('scripts/baixar-modelos.mjs') }}
+
+      - name: Baixar os modelos de voz
+        run: node scripts/baixar-modelos.mjs
+
+      - name: Testes de voz com os motores reais
+        run: npm run test:voice
+        env:
+          TP_VOICE_PARAKEET: '1'
+
+      - name: Medições
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: medicoes-voz-${{ matrix.os }}
+          path: out-voice/medicoes.jsonl
+          if-no-files-found: ignore

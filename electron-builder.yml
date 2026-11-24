@@ -10,6 +10,10 @@ files:
   - package.json
   - '!**/*.map'
 asar: true
+# O sherpa-onnx (Parakeet) carrega um .node e as bibliotecas do onnxruntime: ficam fora do asar.
+asarUnpack:
+  - node_modules/sherpa-onnx-node/**
+  - node_modules/sherpa-onnx-*/**
 # Modelos de voz baixados por scripts/baixar-modelos.mjs (fora do git).
 extraResources:
   - from: resources/models

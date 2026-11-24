@@ -259,6 +259,7 @@ interface Settings {
 | `MIN_MATCH_RUN` | 2 de 3 palavras finais ouvidas, em ordem | Critério para avançar no "Perto" |
 | `JUMP_MIN_RUN` | 5 palavras seguidas, semelhança mínima de 0,85 cada | Critério de "reconhecido com segurança" |
 | `WORD_SIMILARITY` | 0,75 (Levenshtein normalizado) | Palavra que "bate" |
+| `NEAR_MAX_GAP` | 2 tokens | No "Perto", tokens que podem ficar entre duas palavras ouvidas que batem (acrescentada na tarefa 2) |
 | `WAITING_AFTER_MS` | 2500 ms sem casar | Ouvindo para Esperando |
 | `SIGNAL_DEBOUNCE_MS` | 700 ms | Sinal discreto só muda com estado estável |
 | `MANUAL_PRIORITY_MS` | 300 ms | Alvos de voz ignorados logo após comando manual |
@@ -270,6 +271,23 @@ interface Settings {
 | `LOW_CONTRAST_RATIO` | 3:1 (WCAG) | Aviso de contraste |
 
 Esses valores atendem às questões em aberto do PRD sobre a calibração do 1,00x e a janela curta. Nascem aqui e são recalibrados na tarefa de prova da voz.
+
+**Prova da voz (tarefa 2), medição de 2026-11-24, ainda sem calibração final:**
+
+- **Situação:** as constantes de voz e o `BASE_WPM` continuam com os valores iniciais da tabela. A calibração final depende das gravações reais da equipe (3 pessoas, `tests/fixtures/voz/`), que ainda não foram feitas. Quando chegarem, `npm run test:voice` mede tudo de novo e os valores finais entram aqui, com a data.
+- **Medição provisória:** Windows x64, voz sintética pt-BR do Windows lendo o roteiro de teste (112 palavras), em tempo real, dentro do Electron e com o alinhador de verdade. A voz sintética é limpa e regular demais para calibrar; os números só mostram que o caminho funciona.
+
+| Motor e cenário | Cobertura do roteiro | Atraso p50 | Atraso p95 | Observação |
+|---|---|---|---|---|
+| Vosk, leitura contínua (WAV direto) | 100% | 480 ms | 1.256 ms | 87 parciais; motor leva 1 ms por pedaço de 100 ms |
+| Vosk, leitura contínua (microfone falso do Chromium, `AudioCapture` real) | 100% | 536 ms | 2.729 ms | reamostragem no `AudioWorklet` |
+| Vosk, trecho pulado, "Pulos para a frente" | 100% | 658 ms | 3.666 ms | um salto, sem comando manual |
+| Vosk, improviso de 20 s ("Perto" e "Pulos") | 100% | 538 ms | 2.779 ms | o cursor não andou durante o improviso |
+| Parakeet, leitura contínua (`utilityProcess`) | 100% | 966 ms | 1.839 ms | decodificação de 628 ms por janela de 3 s |
+
+- **Atraso:** do fim da palavra no áudio até o cursor chegar nela. O p95 do Vosk ainda é alto em alguns cenários e não tem causa confirmada; a suspeita são as palavras curtas, que esperam a palavra seguinte para casar (2 de 3), e os fins de frase. É o ponto a olhar com as gravações reais.
+- **Gramática do Vosk com acento:** o léxico do modelo em português guarda as palavras com acento ("atenção", "câmera") e o Vosk descarta da gramática a palavra que não conhece. Por isso a gramática enviada ao Vosk é `buildSpokenVocabulary` (minúsculas, sem pontuação, COM acento, números por extenso, mais `[unk]`), e não as palavras normalizadas sem acento da etapa 2 de "Voz". O alinhador continua comparando sem acento. Com essa troca, o p95 da leitura contínua caiu de 2.686 para 1.256 ms.
+- **Rede:** nenhuma requisição de rede em nenhuma medição.
 
 ### Algoritmos principais
 
@@ -312,7 +330,7 @@ Esses valores atendem às questões em aberto do PRD sobre a calibração do 1,0
 **Voz:**
 
 1. **Normalização (`src/shared/text.ts`):** minúsculas, sem acento, sem pontuação. Números escritos com algarismos são expandidos por extenso em pt-BR, como "2026" para "dois mil e vinte e seis", com uma palavra-token cada.
-2. **Vocabulário do Vosk:** as palavras normalizadas únicas mais `[unk]`.
+2. **Vocabulário do Vosk:** as palavras únicas do roteiro mais `[unk]`, em minúsculas e sem pontuação, mas com acento (`buildSpokenVocabulary`), porque o léxico do modelo tem os acentos (tarefa 2).
 3. **Modo "Perto":**
    1. Pega as últimas até 4 palavras ouvidas (sem `[unk]`).
    2. Procura em `tokens[cursor+1 .. cursor+NEAR_WINDOW_TOKENS]` o ponto `j` em que ao menos 2 das 3 palavras finais batem em ordem.
@@ -404,7 +422,7 @@ O programa não tem API HTTP própria. As fronteiras são canais tipados em `src
 | `state:output` | principal → saída | `{ id, layout, mirrorH, flipV, voiceSignal, voiceState, showBadge }` | nenhuma |
 | `motion:segment` | principal → todas | `MotionSegment` | nenhuma |
 | `clock:ping` | janela → principal | `t0` | `{ t0, mainNow }` |
-| `asr:pcm` | controle → ParakeetHost | `Float32Array` 16 kHz (MessagePort, transferível) | `{ words, final, audioEndMs }` ou `{ fault }` |
+| `asr:pcm` | controle → ParakeetHost | `{ pcm: Float32Array 16 kHz, endMs }` ou `{ stop: true }` (MessagePort; o buffer vai copiado, porque o `MessagePortMain` do Electron descarta `ArrayBuffer` transferido) | `{ ready: true }`, `{ words, final, audioEndMs }` ou `{ fault }` |
 
 ## Pontos de integração
 

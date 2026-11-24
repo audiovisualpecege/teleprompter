@@ -35,6 +35,12 @@ export const NEAR_HEARD_WORDS = 4;
 export const MIN_MATCH_RUN = { hits: 2, of: 3 } as const;
 /** Uma única palavra com ao menos este número de letras vale em cursor+1 ou cursor+2. */
 export const NEAR_LONG_WORD_MIN = 6;
+/**
+ * No "Perto", quantos tokens do roteiro podem ficar entre duas palavras ouvidas que
+ * batem (uma sigla que o reconhecedor não entende, uma palavra engolida). Evita que
+ * palavras curtas soltas, como "o" e "e", casem longe uma da outra no improviso.
+ */
+export const NEAR_MAX_GAP = 2;
 /** "Reconhecido com segurança": palavras seguidas e semelhança mínima de cada uma. */
 export const JUMP_MIN_RUN = { words: 5, similarity: 0.85 } as const;
 /** Semelhança (Levenshtein normalizado) para uma palavra "bater". */

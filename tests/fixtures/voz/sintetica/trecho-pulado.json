@@ -1,0 +1,471 @@
+{
+  "origem": "sintetica",
+  "voz": "Microsoft Maria Desktop",
+  "aviso": "Voz sintética: serve para exercitar o pipeline, não para calibrar.",
+  "roteiro": "roteiro.txt",
+  "duracaoMs": 39942,
+  "marcas": [
+    {
+      "palavra": "Bom",
+      "token": 0,
+      "inicioMs": 94,
+      "fimMs": 374
+    },
+    {
+      "palavra": "dia",
+      "token": 1,
+      "inicioMs": 376,
+      "fimMs": 736
+    },
+    {
+      "palavra": "e",
+      "token": 2,
+      "inicioMs": 740,
+      "fimMs": 840
+    },
+    {
+      "palavra": "bem",
+      "token": 3,
+      "inicioMs": 841,
+      "fimMs": 1171
+    },
+    {
+      "palavra": "vindos",
+      "token": 4,
+      "inicioMs": 1171,
+      "fimMs": 1731
+    },
+    {
+      "palavra": "ao",
+      "token": 5,
+      "inicioMs": 1739,
+      "fimMs": 1909
+    },
+    {
+      "palavra": "estúdio",
+      "token": 6,
+      "inicioMs": 1911,
+      "fimMs": 2551
+    },
+    {
+      "palavra": "da",
+      "token": 7,
+      "inicioMs": 2553,
+      "fimMs": 2703
+    },
+    {
+      "palavra": "Chiaro",
+      "token": 8,
+      "inicioMs": 2703,
+      "fimMs": 3203
+    },
+    {
+      "palavra": "Filmes",
+      "token": 9,
+      "inicioMs": 3206,
+      "fimMs": 3896
+    },
+    {
+      "palavra": "Hoje",
+      "token": 10,
+      "inicioMs": 4981,
+      "fimMs": 5381
+    },
+    {
+      "palavra": "vamos",
+      "token": 11,
+      "inicioMs": 5382,
+      "fimMs": 5842
+    },
+    {
+      "palavra": "conhecer",
+      "token": 12,
+      "inicioMs": 5844,
+      "fimMs": 6424
+    },
+    {
+      "palavra": "o",
+      "token": 13,
+      "inicioMs": 6424,
+      "fimMs": 6504
+    },
+    {
+      "palavra": "teleprompter",
+      "token": 14,
+      "inicioMs": 6508,
+      "fimMs": 7798
+    },
+    {
+      "palavra": "que",
+      "token": 15,
+      "inicioMs": 7803,
+      "fimMs": 7953
+    },
+    {
+      "palavra": "a",
+      "token": 16,
+      "inicioMs": 7959,
+      "fimMs": 8029
+    },
+    {
+      "palavra": "equipe",
+      "token": 17,
+      "inicioMs": 8037,
+      "fimMs": 8567
+    },
+    {
+      "palavra": "usa",
+      "token": 18,
+      "inicioMs": 8571,
+      "fimMs": 8901
+    },
+    {
+      "palavra": "nas",
+      "token": 19,
+      "inicioMs": 8902,
+      "fimMs": 9142
+    },
+    {
+      "palavra": "gravações",
+      "token": 20,
+      "inicioMs": 9144,
+      "fimMs": 9944
+    },
+    {
+      "palavra": "de",
+      "token": 21,
+      "inicioMs": 9945,
+      "fimMs": 10095
+    },
+    {
+      "palavra": "cursos",
+      "token": 22,
+      "inicioMs": 10102,
+      "fimMs": 10772
+    },
+    {
+      "palavra": "e",
+      "token": 23,
+      "inicioMs": 10778,
+      "fimMs": 10878
+    },
+    {
+      "palavra": "entrevistas",
+      "token": 24,
+      "inicioMs": 10884,
+      "fimMs": 11974
+    },
+    {
+      "palavra": "O",
+      "token": 25,
+      "inicioMs": 12987,
+      "fimMs": 13097
+    },
+    {
+      "palavra": "texto",
+      "token": 26,
+      "inicioMs": 13097,
+      "fimMs": 13667
+    },
+    {
+      "palavra": "aparece",
+      "token": 27,
+      "inicioMs": 13675,
+      "fimMs": 14345
+    },
+    {
+      "palavra": "no",
+      "token": 28,
+      "inicioMs": 14347,
+      "fimMs": 14497
+    },
+    {
+      "palavra": "vidro",
+      "token": 29,
+      "inicioMs": 14499,
+      "fimMs": 14939
+    },
+    {
+      "palavra": "em",
+      "token": 30,
+      "inicioMs": 14948,
+      "fimMs": 15068
+    },
+    {
+      "palavra": "frente",
+      "token": 31,
+      "inicioMs": 15077,
+      "fimMs": 15647
+    },
+    {
+      "palavra": "à",
+      "token": 32,
+      "inicioMs": 15647,
+      "fimMs": 15717
+    },
+    {
+      "palavra": "câmera",
+      "token": 33,
+      "inicioMs": 15718,
+      "fimMs": 16278
+    },
+    {
+      "palavra": "e",
+      "token": 34,
+      "inicioMs": 16531,
+      "fimMs": 16631
+    },
+    {
+      "palavra": "quem",
+      "token": 35,
+      "inicioMs": 16637,
+      "fimMs": 16907
+    },
+    {
+      "palavra": "apresenta",
+      "token": 36,
+      "inicioMs": 16915,
+      "fimMs": 17635
+    },
+    {
+      "palavra": "lê",
+      "token": 37,
+      "inicioMs": 17643,
+      "fimMs": 17873
+    },
+    {
+      "palavra": "sem",
+      "token": 38,
+      "inicioMs": 17877,
+      "fimMs": 18197
+    },
+    {
+      "palavra": "desviar",
+      "token": 39,
+      "inicioMs": 18205,
+      "fimMs": 18785
+    },
+    {
+      "palavra": "o",
+      "token": 40,
+      "inicioMs": 18787,
+      "fimMs": 18877
+    },
+    {
+      "palavra": "olhar",
+      "token": 41,
+      "inicioMs": 18881,
+      "fimMs": 19341
+    },
+    {
+      "palavra": "Quando",
+      "token": 77,
+      "inicioMs": 20402,
+      "fimMs": 20782
+    },
+    {
+      "palavra": "a",
+      "token": 78,
+      "inicioMs": 20785,
+      "fimMs": 20855
+    },
+    {
+      "palavra": "apresentadora",
+      "token": 79,
+      "inicioMs": 20864,
+      "fimMs": 21914
+    },
+    {
+      "palavra": "improvisa",
+      "token": 80,
+      "inicioMs": 21914,
+      "fimMs": 22664
+    },
+    {
+      "palavra": "o",
+      "token": 81,
+      "inicioMs": 22914,
+      "fimMs": 23024
+    },
+    {
+      "palavra": "texto",
+      "token": 82,
+      "inicioMs": 23032,
+      "fimMs": 23592
+    },
+    {
+      "palavra": "espera",
+      "token": 83,
+      "inicioMs": 23596,
+      "fimMs": 24186
+    },
+    {
+      "palavra": "com",
+      "token": 84,
+      "inicioMs": 24187,
+      "fimMs": 24417
+    },
+    {
+      "palavra": "paciência",
+      "token": 85,
+      "inicioMs": 24425,
+      "fimMs": 25305
+    },
+    {
+      "palavra": "Quando",
+      "token": 86,
+      "inicioMs": 26268,
+      "fimMs": 26668
+    },
+    {
+      "palavra": "ela",
+      "token": 87,
+      "inicioMs": 26673,
+      "fimMs": 26893
+    },
+    {
+      "palavra": "retoma",
+      "token": 88,
+      "inicioMs": 26897,
+      "fimMs": 27467
+    },
+    {
+      "palavra": "a",
+      "token": 89,
+      "inicioMs": 27473,
+      "fimMs": 27533
+    },
+    {
+      "palavra": "leitura",
+      "token": 90,
+      "inicioMs": 27534,
+      "fimMs": 28254
+    },
+    {
+      "palavra": "a",
+      "token": 91,
+      "inicioMs": 28488,
+      "fimMs": 28558
+    },
+    {
+      "palavra": "rolagem",
+      "token": 92,
+      "inicioMs": 28560,
+      "fimMs": 29240
+    },
+    {
+      "palavra": "continua",
+      "token": 93,
+      "inicioMs": 29246,
+      "fimMs": 29896
+    },
+    {
+      "palavra": "do",
+      "token": 94,
+      "inicioMs": 29896,
+      "fimMs": 30026
+    },
+    {
+      "palavra": "ponto",
+      "token": 95,
+      "inicioMs": 30035,
+      "fimMs": 30485
+    },
+    {
+      "palavra": "certo",
+      "token": 96,
+      "inicioMs": 30492,
+      "fimMs": 31182
+    },
+    {
+      "palavra": "sem",
+      "token": 97,
+      "inicioMs": 31440,
+      "fimMs": 31750
+    },
+    {
+      "palavra": "saltos",
+      "token": 98,
+      "inicioMs": 31757,
+      "fimMs": 32437
+    },
+    {
+      "palavra": "e",
+      "token": 99,
+      "inicioMs": 32437,
+      "fimMs": 32497
+    },
+    {
+      "palavra": "sem",
+      "token": 100,
+      "inicioMs": 32504,
+      "fimMs": 32844
+    },
+    {
+      "palavra": "atrasos",
+      "token": 101,
+      "inicioMs": 32851,
+      "fimMs": 33661
+    },
+    {
+      "palavra": "Assim",
+      "token": 102,
+      "inicioMs": 34691,
+      "fimMs": 35131
+    },
+    {
+      "palavra": "a",
+      "token": 103,
+      "inicioMs": 35132,
+      "fimMs": 35202
+    },
+    {
+      "palavra": "gravação",
+      "token": 104,
+      "inicioMs": 35204,
+      "fimMs": 35904
+    },
+    {
+      "palavra": "fica",
+      "token": 105,
+      "inicioMs": 35906,
+      "fimMs": 36356
+    },
+    {
+      "palavra": "natural",
+      "token": 106,
+      "inicioMs": 36364,
+      "fimMs": 36984
+    },
+    {
+      "palavra": "e",
+      "token": 107,
+      "inicioMs": 36990,
+      "fimMs": 37090
+    },
+    {
+      "palavra": "termina",
+      "token": 108,
+      "inicioMs": 37094,
+      "fimMs": 37634
+    },
+    {
+      "palavra": "no",
+      "token": 109,
+      "inicioMs": 37640,
+      "fimMs": 37800
+    },
+    {
+      "palavra": "tempo",
+      "token": 110,
+      "inicioMs": 37804,
+      "fimMs": 38234
+    },
+    {
+      "palavra": "previsto",
+      "token": 111,
+      "inicioMs": 38236,
+      "fimMs": 39066
+    }
+  ]
+}

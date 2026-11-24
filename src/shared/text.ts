@@ -89,6 +89,16 @@ const stripAccents = (s: string): string => s.normalize('NFD').replace(/\p{M}+/g
  * números por extenso (um token por palavra). "2026" vira "dois mil e vinte e seis".
  */
 export function normalizeTokens(text: string): string[] {
+  return tokenize(text, false);
+}
+
+/** Palavras faladas: como `normalizeTokens`, mas com os acentos (forma do léxico do Vosk). */
+export function spokenTokens(text: string): string[] {
+  return tokenize(text, true);
+}
+
+function tokenize(text: string, keepAccents: boolean): string[] {
+  const fold = keepAccents ? (s: string): string => s.normalize('NFC') : stripAccents;
   const prepared = text
     .toLocaleLowerCase('pt-BR')
     // Separador de milhar ("1.000") e decimais ("1,5").
@@ -98,10 +108,10 @@ export function normalizeTokens(text: string): string[] {
     // Algarismos colados a letras ("10h", "3d") viram palavras separadas.
     .replace(/(\d)(?=\p{L})|(\p{L})(?=\d)/gu, '$1$2 ');
   const out: string[] = [];
-  for (const raw of stripAccents(prepared).split(/[^\p{L}\p{N}]+/u)) {
+  for (const raw of fold(prepared).split(/[^\p{L}\p{M}\p{N}]+/u)) {
     if (!raw) continue;
     if (/^\d+$/.test(raw)) {
-      for (const w of numberToWords(raw)) out.push(stripAccents(w));
+      for (const w of numberToWords(raw)) out.push(fold(w));
     } else out.push(raw);
   }
   return out;
@@ -110,6 +120,15 @@ export function normalizeTokens(text: string): string[] {
 /** Vocabulário do Vosk: palavras normalizadas únicas, na ordem em que aparecem, mais `[unk]`. */
 export function buildVocabulary(text: string): string[] {
   return [...new Set(normalizeTokens(text)), '[unk]'];
+}
+
+/**
+ * Gramática que o Vosk de fato usa: as palavras do roteiro COM acento, porque o léxico do
+ * modelo em português guarda "atenção", não "atencao", e o Vosk descarta da gramática a
+ * palavra que não conhece. O alinhador continua comparando sem acento.
+ */
+export function buildSpokenVocabulary(text: string): string[] {
+  return [...new Set(spokenTokens(text)), '[unk]'];
 }
 
 /* ---------- Cores e contraste ---------- */
