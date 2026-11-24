@@ -1,2 +1,6 @@
 [defaults]
 ide = 'claude'
+
+[defaults.stall]
+timeout = "30m"
+terminal_command_timeout = "30m"

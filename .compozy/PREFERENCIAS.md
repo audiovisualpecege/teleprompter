@@ -49,3 +49,5 @@ recente vale. Para tirar uma, apague a linha. O vigia acrescenta aqui só o que 
 - [2026-10-27 · #33 · Zerati] E-mails automáticos de um app (convite, recuperação de senha) saem pelo plano gratuito do Brevo com o domínio da empresa verificado no DNS, e a tela oferece também um botão para copiar o link.
 - [2026-10-27 · #33 · Zerati] Documentos exportados para ler e imprimir (PDF, DOCX) saem em fundo branco com a identidade da Chiaro, mesmo quando as telas do app são escuras.
 - [2026-10-27 · #33 · Zerati] Marcações feitas ao vivo usam botões rápidos de um toque, que guardam o momento exato do toque, a partir de uma lista editável pela equipe, mais uma opção de texto livre com ditado.
+- [2026-11-24 · #34 · Zerati] Quando uma automação tem mais de um comportamento viável, o mais estável é o padrão e o outro fica como opção selecionável por quem usa.
+- [2026-11-24 · #34 · Zerati] Uma opção barata que pode servir a algum equipamento ou caso de uso entra na primeira versão, e a equipe decide tirá-la depois de testar no uso real.
