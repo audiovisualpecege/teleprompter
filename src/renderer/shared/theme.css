@@ -1,0 +1,49 @@
+/*
+ * Tema Noite da Chiaro, sempre (design-system/chiaro/DESIGN.md). Os tokens e as
+ * fontes vêm de @chiaro/styles.css; aqui só se liga o tema escuro no documento.
+ * O tokens/base.css declara `:root{color-scheme:light}` para o tema claro, que não
+ * vale para este programa: a regra abaixo, mais específica, o substitui.
+ */
+@import '@chiaro/styles.css';
+
+:root[data-theme='noite'] {
+  color-scheme: dark;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+}
+
+body {
+  color-scheme: dark;
+  background: var(--surface-page);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  overflow: hidden;
+}
+
+#root {
+  height: 100%;
+}
+
+/* Barras de rolagem escuras, com os tokens do tema Noite. */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: var(--surface-sunken);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--surface-raised);
+  border-radius: var(--radius-pill);
+  border: 2px solid var(--surface-sunken);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent);
+}
+::-webkit-scrollbar-corner {
+  background: var(--surface-sunken);
+}

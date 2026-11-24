@@ -1,0 +1,64 @@
+# Instaladores do Teleprompter (ADR-009). O número da versão vem só do package.json.
+appId: br.com.chiarofilmes.teleprompter
+productName: Teleprompter
+copyright: Chiaro Filmes
+directories:
+  output: dist
+  buildResources: build
+files:
+  - out/**/*
+  - package.json
+  - '!**/*.map'
+asar: true
+# Modelos de voz baixados por scripts/baixar-modelos.mjs (fora do git).
+extraResources:
+  - from: resources/models
+    to: models
+    filter:
+      - '**/*'
+fileAssociations:
+  - ext: roteiro
+    name: Roteiro do Teleprompter
+    description: Roteiro do Teleprompter
+    mimeType: application/x-teleprompter-roteiro
+    role: Editor
+    icon: icons/icone
+win:
+  icon: build/icons/icone.ico
+  target:
+    - target: nsis
+      arch:
+        - x64
+  artifactName: Teleprompter-${version}-win-${arch}.${ext}
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: Teleprompter
+  installerIcon: build/icons/icone.ico
+  uninstallerIcon: build/icons/icone.ico
+  uninstallDisplayName: Teleprompter
+mac:
+  icon: build/icons/icone.icns
+  category: public.app-category.video
+  target:
+    - target: dmg
+      arch:
+        - x64
+        - arm64
+  # Assinatura ad hoc, sem certificado (preferência da equipe: instaladores sem assinatura de código).
+  identity: '-'
+  hardenedRuntime: false
+  gatekeeperAssess: false
+  artifactName: Teleprompter-${version}-mac-${arch}.${ext}
+  extendInfo:
+    NSMicrophoneUsageDescription: O Teleprompter usa o microfone para acompanhar a sua leitura. O áudio é processado só neste computador.
+dmg:
+  artifactName: Teleprompter-${version}-mac-${arch}.${ext}
+publish:
+  provider: github
+  owner: audiovisualpecege
+  repo: teleprompter
+  releaseType: release

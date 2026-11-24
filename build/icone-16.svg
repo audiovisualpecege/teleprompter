@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <!--
+    Variante do ícone para 16 e 32 px: o mesmo símbolo sem detalhes finos,
+    com o vidro, duas linhas grossas e a faixa Pêssego.
+  -->
+  <defs>
+    <linearGradient id="chiaro" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#8C4EDB"/>
+      <stop offset="0.5" stop-color="#672FA2"/>
+      <stop offset="1" stop-color="#2E1F5B"/>
+    </linearGradient>
+  </defs>
+  <rect x="0" y="0" width="1024" height="1024" rx="208" fill="url(#chiaro)"/>
+  <g transform="translate(512 512) skewX(-9) translate(-512 -512)">
+    <rect x="200" y="168" width="624" height="688" rx="88" fill="none"
+          stroke="#F7E1C4" stroke-width="96" stroke-linejoin="round"/>
+    <rect x="248" y="296" width="528" height="112" rx="56" fill="#F7E1C4"/>
+    <rect x="248" y="504" width="528" height="208" rx="56" fill="#FACE95"/>
+    <rect x="320" y="556" width="384" height="104" rx="52" fill="#070010"/>
+  </g>
+</svg>

@@ -5,3 +5,11 @@ node_modules/
 .cache/
 .pnpm-store/
 .turbo/
+out/
+out-test/
+dist/
+resources/models/
+test-results/
+playwright-report/
+*.log
+*.tsbuildinfo

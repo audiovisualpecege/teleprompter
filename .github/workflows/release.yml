@@ -1,0 +1,62 @@
+# Publica os instaladores nas Releases de github.com/audiovisualpecege/teleprompter
+# quando uma tag de versão (v1.2.3) é enviada. A tag precisa ser igual ao version do package.json.
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Instalador ${{ matrix.name }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Windows
+            os: windows-latest
+            dist: npx electron-builder --win --x64 --publish always
+          - name: Mac
+            os: macos-latest
+            dist: npx electron-builder --mac --x64 --arm64 --publish always
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Conferir a tag com a versão do package.json
+        if: startsWith(github.ref, 'refs/tags/')
+        shell: bash
+        run: |
+          VERSAO="v$(node -p "require('./package.json').version")"
+          if [ "$VERSAO" != "${GITHUB_REF_NAME}" ]; then
+            echo "A tag ${GITHUB_REF_NAME} não é igual à versão $VERSAO do package.json"
+            exit 1
+          fi
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Baixar os modelos de voz
+        if: hashFiles('scripts/baixar-modelos.mjs') != ''
+        run: node scripts/baixar-modelos.mjs
+
+      - name: Testes
+        run: npm test
+
+      - name: Build
+        run: npm run build
+
+      - name: Instaladores
+        run: ${{ matrix.dist }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

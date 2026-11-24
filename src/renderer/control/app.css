@@ -1,0 +1,25 @@
+.tp-shell {
+  position: relative;
+  height: 100%;
+  background: var(--gradient-noite);
+}
+
+.tp-main {
+  height: 100%;
+}
+
+.tp-footer {
+  position: fixed;
+  right: var(--space-4);
+  bottom: var(--space-3);
+  pointer-events: none;
+}
+
+/* Versão: canto inferior direito, fixa, discreta, em tamanho de legenda. */
+.tp-version {
+  color: var(--text-muted);
+  font-family: var(--font-body);
+  font-size: var(--text-caption);
+  letter-spacing: var(--tracking-normal);
+  user-select: text;
+}
