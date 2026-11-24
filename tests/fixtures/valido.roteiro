@@ -1,0 +1,16 @@
+{
+  "formato": "teleprompter-roteiro",
+  "versao": 1,
+  "texto": "Bom dia.\n\nEste é o roteiro.",
+  "aparencia": {
+    "fontFamily": "Archivo",
+    "fontSize": 96,
+    "textColor": "#FFFF00",
+    "backgroundColor": "#101010",
+    "bandColor": "#FACE9533",
+    "letterCase": "upper",
+    "align": "left",
+    "marginPct": 15,
+    "bandPositionPct": 40
+  }
+}

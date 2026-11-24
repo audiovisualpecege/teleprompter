@@ -210,4 +210,17 @@ export interface StateSnapshot {
   editorFocused: boolean;
   update: { version: string; url: string } | null;
   notices: Notice[];
+  /** Pergunta pendente que nasceu no principal (duplo clique, fechar, recuperação). */
+  prompt: DocPrompt | null;
 }
+
+/**
+ * Pergunta que o principal pede à tela de controle:
+ * - `unsaved`: abrir por duplo clique ou fechar o programa com alterações não salvas;
+ *   a tela responde com `cmd:doc` da mesma operação e `unsaved: 'save' | 'discard'`.
+ * - `recovery`: há uma cópia de recuperação de uma queda; a tela responde com
+ *   `cmd:doc { op: 'recover', accept }`.
+ */
+export type DocPrompt =
+  | { kind: 'unsaved'; op: 'open' | 'close'; path: string | null }
+  | { kind: 'recovery'; savedAt: number; filePath: string | null };

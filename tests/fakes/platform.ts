@@ -23,6 +23,8 @@ export interface FakePlatform extends Platform {
   created: FakeWindow[];
   blockers: Set<number>;
   dialogAnswers: { open: string[] | null; save: string | null };
+  /** Opções de cada seletor chamado, em ordem. */
+  dialogCalls: { kind: 'open' | 'save'; options: Record<string, unknown> }[];
   fetchImpl: (url: string) => Promise<Response>;
   opened: string[];
   addDisplay(d: PlatformDisplay): void;
@@ -91,6 +93,7 @@ export function createFakePlatform(displays: PlatformDisplay[] = [fakeDisplay(1,
     created: [],
     blockers: new Set(),
     dialogAnswers: { open: null, save: null },
+    dialogCalls: [],
     fetchImpl: async () => new Response('{}', { status: 404 }),
     opened: [],
     screen: {
@@ -123,10 +126,16 @@ export function createFakePlatform(displays: PlatformDisplay[] = [fakeDisplay(1,
       isStarted: (id) => fake.blockers.has(id),
     },
     dialog: {
-      showOpenDialog: async () =>
-        fake.dialogAnswers.open ? { canceled: false, filePaths: fake.dialogAnswers.open } : { canceled: true, filePaths: [] },
-      showSaveDialog: async () =>
-        fake.dialogAnswers.save ? { canceled: false, filePath: fake.dialogAnswers.save } : { canceled: true },
+      showOpenDialog: async (_w, options) => {
+        fake.dialogCalls.push({ kind: 'open', options: options as Record<string, unknown> });
+        return fake.dialogAnswers.open
+          ? { canceled: false, filePaths: fake.dialogAnswers.open }
+          : { canceled: true, filePaths: [] };
+      },
+      showSaveDialog: async (_w, options) => {
+        fake.dialogCalls.push({ kind: 'save', options: options as Record<string, unknown> });
+        return fake.dialogAnswers.save ? { canceled: false, filePath: fake.dialogAnswers.save } : { canceled: true };
+      },
     },
     net: { fetch: (url) => fake.fetchImpl(url) },
     shell: {

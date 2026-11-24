@@ -2,7 +2,7 @@
  * Constantes de comportamento (TechSpec, "Constantes de comportamento").
  * Os valores de voz e o BASE_WPM nascem aqui e são recalibrados na prova da voz.
  */
-import type { Appearance } from './types';
+import type { Appearance, KeyCombo, Keymap, Settings } from './types';
 
 /** Palco lógico: largura fixa e altura de referência (ADR-006). */
 export const STAGE_WIDTH = 1920;
@@ -104,3 +104,52 @@ export const DEFAULT_APPEARANCE: Readonly<Appearance> = Object.freeze({
   marginPct: 10,
   bandPositionPct: 33,
 });
+
+/** Nome do arquivo de ajustes e da cópia de recuperação, na pasta do usuário (ADR-008). */
+export const SETTINGS_FILE = 'ajustes.json';
+export const RECOVERY_FILE = 'recuperacao.json';
+/** Extensão do arquivo de roteiro. */
+export const ROTEIRO_EXT = 'roteiro';
+export const ROTEIRO_FORMAT = 'teleprompter-roteiro';
+export const ROTEIRO_VERSION = 1;
+
+const combo = (key: string, mods: Partial<Omit<KeyCombo, 'key'>> = {}): KeyCombo => ({
+  key,
+  ctrlOrCmd: mods.ctrlOrCmd ?? false,
+  shift: mods.shift ?? false,
+  alt: mods.alt ?? false,
+});
+
+/**
+ * Atalhos padrão (PRD, "Atalhos padrão"). `key` segue o `input.key` do Electron
+ * (o mesmo do `KeyboardEvent.key`), com letras em minúscula: o `KeymapService`
+ * normaliza a tecla do evento do mesmo jeito antes de comparar.
+ */
+export function defaultKeymap(): Keymap {
+  return {
+    autoToggle: [combo(' ')],
+    down: [combo('ArrowDown'), combo('PageDown')],
+    up: [combo('ArrowUp'), combo('PageUp')],
+    faster: [combo('+')],
+    slower: [combo('-')],
+    toStart: [combo('Home')],
+    voiceToggle: [combo('v')],
+    closeOutput: [combo('w', { ctrlOrCmd: true, shift: true })],
+  };
+}
+
+/** Ajustes padrão: velocidade 1, voz "Perto" com o Vosk, atalhos padrão e nenhuma saída. */
+export function defaultSettings(): Settings {
+  return {
+    schemaVersion: 1,
+    outputs: [],
+    keymap: defaultKeymap(),
+    micDeviceId: null,
+    micLabel: null,
+    voiceEngine: 'vosk',
+    voiceMode: 'near',
+    speed: SPEED_DEFAULT,
+    lastAppearance: { ...DEFAULT_APPEARANCE },
+    controlDisplayKey: null,
+  };
+}

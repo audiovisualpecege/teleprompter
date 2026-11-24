@@ -1,15 +1,22 @@
 /**
- * Processo principal: dono do estado e da rolagem (ADR-006). Nesta casca ele liga o
- * log, o tema Noite, o relógio comum e a janela de controle; as tarefas seguintes
- * acrescentam o `AppStore`, o motor de rolagem, as saídas e a voz.
+ * Processo principal: dono do estado e da rolagem (ADR-006). Liga o log, o tema
+ * Noite, o relógio comum, o `AppStore` (roteiro, rolagem, ajustes, recuperação), a
+ * abertura por arquivo e a janela de controle; as tarefas seguintes acrescentam as
+ * saídas, os atalhos e a voz.
  */
 import * as electron from 'electron';
 import { app, ipcMain, Menu, nativeTheme, protocol } from 'electron';
 import type { ClockPong } from '@shared/ipc';
 import { processNow } from '@shared/motion';
 import icon from '../../build/icons/256x256.png?asset';
+import { bindStore, type MainTransport } from './ipc-main';
 import { catchUnexpected, logEvent, setupLog } from './log';
 import { createElectronPlatform } from './platform';
+import { RecoveryStore, setupFileOpening } from './recovery';
+import { realScheduler } from './scroll-engine';
+import { ScriptFiles } from './script-files';
+import { SettingsStore } from './settings';
+import { AppStore } from './store';
 import { installMainTestHooks, registerTestHook } from './test-hooks';
 import { createControlWindow } from './windows';
 import { handleModelScheme, modelsDir, registerModelScheme } from './models';
@@ -25,13 +32,34 @@ nativeTheme.themeSource = 'dark';
 
 let controlWindow: WindowLike | null = null;
 
-if (!app.requestSingleInstanceLock()) {
-  app.quit();
-} else {
-  app.on('second-instance', () => {
-    if (controlWindow && !controlWindow.isDestroyed()) controlWindow.focus();
-  });
+// Instância única: o `.roteiro` do duplo clique (argv no Windows, `open-file` no Mac)
+// vai para a instância aberta, e a segunda instância encerra.
+const fileOpening = setupFileOpening(app, process.argv, () => {
+  if (controlWindow && !controlWindow.isDestroyed()) controlWindow.focus();
+});
 
+/** Transporte do `AppStore` sobre `ipcMain`, falando com a janela de controle. */
+function electronTransport(): MainTransport {
+  return {
+    handle(channel, fn) {
+      ipcMain.handle(channel, (_e, req) => fn(req as never));
+      return () => ipcMain.removeHandler(channel);
+    },
+    on(channel, fn) {
+      const listener = (_e: unknown, payload: unknown): void => fn(payload as never);
+      ipcMain.on(channel, listener);
+      return () => ipcMain.removeListener(channel, listener);
+    },
+    toControl(channel, payload) {
+      if (controlWindow && !controlWindow.isDestroyed()) controlWindow.webContents.send(channel, payload);
+    },
+    // As saídas chegam na tarefa das saídas (`OutputManager`).
+    toOutputs: () => undefined,
+    layoutToOutputs: () => undefined,
+  };
+}
+
+if (fileOpening.primary) {
   // Relógio comum: cada janela mede o desvio do seu relógio em relação a este.
   ipcMain.handle('clock:ping', (_event, t0: number): ClockPong => ({ t0, mainNow: processNow() }));
 
@@ -59,6 +87,17 @@ if (!app.requestSingleInstanceLock()) {
     );
     const platform = createElectronPlatform(electron);
     logEvent('app.start', { version: app.getVersion(), platform: process.platform, arch: process.arch });
+    const userData = app.getPath('userData');
+    const store = new AppStore({
+      files: new ScriptFiles({ dialog: platform.dialog, window: () => controlWindow }),
+      settings: new SettingsStore({ userDataDir: userData, log: logEvent }),
+      recovery: new RecoveryStore(userData),
+      scheduler: realScheduler(processNow),
+      now: processNow,
+      log: logEvent,
+    });
+    bindStore(store, electronTransport());
+    store.onQuit(() => app.quit());
     controlWindow = createControlWindow(platform, {
       mainDir: __dirname,
       devServerUrl: process.env.ELECTRON_RENDERER_URL,
@@ -66,7 +105,20 @@ if (!app.requestSingleInstanceLock()) {
     });
     controlWindow.on('closed', () => {
       controlWindow = null;
+      // Sem alterações, a cópia de recuperação some. Com alterações, ela fica até a
+      // pergunta de fechar chegar com a tela de controle (tarefa da tela).
+      store.requestClose();
+      store.dispose();
       app.quit();
+    });
+    const started = store.init();
+    // O primeiro estado e o arquivo do duplo clique só depois de a tela carregar.
+    controlWindow.webContents.on('did-finish-load', () => {
+      void started.then(() => {
+        controlWindow?.webContents.send('state:snapshot', store.snapshot());
+        controlWindow?.webContents.send('layout:request', store.currentLayoutRequest());
+        fileOpening.ready((path) => void store.openFromSystem(path));
+      });
     });
   });
 

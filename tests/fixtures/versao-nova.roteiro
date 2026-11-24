@@ -1,0 +1,18 @@
+{
+  "formato": "teleprompter-roteiro",
+  "versao": 2,
+  "texto": "Texto da versão nova.",
+  "aparencia": {
+    "fontFamily": "Archivo",
+    "fontSize": 96,
+    "textColor": "#FFFF00",
+    "backgroundColor": "#101010",
+    "bandColor": "#FACE9533",
+    "letterCase": "upper",
+    "align": "left",
+    "marginPct": 15,
+    "bandPositionPct": 40,
+    "sombra": true
+  },
+  "capitulos": []
+}

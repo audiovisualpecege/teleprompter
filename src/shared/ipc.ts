@@ -29,17 +29,33 @@ import type {
 
 /* ---------- Cargas dos canais ---------- */
 
+/**
+ * Resposta à pergunta de alterações não salvas: "Salvar", "Não salvar" ou "Cancelar".
+ * Quando a pergunta nasceu na tela, "Cancelar" pode simplesmente não repetir o
+ * comando; quando nasceu no principal (`StateSnapshot.prompt`), `cancel` a fecha.
+ */
+export type UnsavedChoice = 'save' | 'discard' | 'cancel';
+
 export type DocCommand =
   | { op: 'setDraft'; text: string }
   | { op: 'confirm' }
   | { op: 'discard' }
-  | { op: 'new' }
-  | { op: 'open'; path?: string }
+  | { op: 'new'; unsaved?: UnsavedChoice }
+  | { op: 'open'; path?: string; unsaved?: UnsavedChoice }
   | { op: 'save' }
   | { op: 'saveAs' }
-  | { op: 'import'; path?: string }
-  | { op: 'recover' };
-export type DocFailure = FileError | 'empty-text' | 'cancelled';
+  | { op: 'import'; path?: string; unsaved?: UnsavedChoice }
+  | { op: 'recover'; accept?: boolean }
+  | { op: 'close'; unsaved?: UnsavedChoice };
+
+export const UNSAVED_OPTIONS = ['Salvar', 'Não salvar', 'Cancelar'] as const;
+
+/** Há alterações não salvas: a tela pergunta e repete o comando com `unsaved`. */
+export interface NeedsConfirmation {
+  code: 'needs-confirmation';
+  options: typeof UNSAVED_OPTIONS;
+}
+export type DocFailure = FileError | NeedsConfirmation | 'empty-text' | 'cancelled';
 
 export type OutputCommand =
   | { op: 'open'; displayKey: string }
