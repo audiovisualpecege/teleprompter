@@ -21,6 +21,10 @@ import { installMainTestHooks, registerTestHook } from './test-hooks';
 import { createControlWindow } from './windows';
 import { handleModelScheme, modelsDir, registerModelScheme } from './models';
 import type { WindowLike } from './platform';
+import { installPermissions } from './permissions';
+
+// Só no build de teste: cada teste de ponta a ponta usa a sua própria pasta de usuário.
+if (__TP_TEST__ && process.env.TP_USER_DATA) app.setPath('userData', process.env.TP_USER_DATA);
 
 setupLog(app.getPath('userData'));
 catchUnexpected(process);
@@ -81,6 +85,7 @@ if (fileOpening.primary) {
   void app.whenReady().then(() => {
     // No Windows a barra de menu nativa seria clara: o programa não tem menu.
     if (process.platform !== 'darwin') Menu.setApplicationMenu(null);
+    installPermissions(electron.session.defaultSession);
     handleModelScheme(
       protocol,
       modelsDir({ isPackaged: app.isPackaged, resourcesPath: process.resourcesPath, appPath: app.getAppPath() }),

@@ -52,6 +52,11 @@ type DocResult = Result<void, DocFailure>;
 
 const MAX_NOTICES = 5;
 
+/** Aviso único de fonte ausente (some quando o layout volta a ter a fonte). */
+export const MISSING_FONT_NOTICE = 'missing-font';
+export const missingFontMessage = (family: string): string =>
+  `A fonte ${family} não está instalada neste computador. O texto aparece em Archivo`;
+
 const needsConfirmation = (): DocResult => err({ code: 'needs-confirmation', options: UNSAVED_OPTIONS });
 
 export class AppStore {
@@ -239,6 +244,9 @@ export class AppStore {
     this.resetOnLayout = false;
     this.appliedText = text;
     this.appliedRevision = layout.revision;
+    // Fonte do roteiro ausente neste computador: diagramado em Archivo, com aviso.
+    if (layout.missingFont) this.notify('warning', missingFontMessage(layout.missingFont), MISSING_FONT_NOTICE);
+    else this.notices = this.notices.filter((n) => n.id !== MISSING_FONT_NOTICE);
     this.publish();
   }
 

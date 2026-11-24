@@ -68,6 +68,27 @@ export function voskWorkerCode(): Plugin {
   };
 }
 
+/**
+ * O `Icon` do design system da Chiaro carrega os SVGs do Solar por CDN (jsDelivr), o que
+ * não funciona sem internet e é barrado pela política de conteúdo das janelas. Sem editar
+ * `design-system/chiaro/`, toda importação de `Icon.jsx` feita pelos componentes de lá vai
+ * para `src/renderer/shared/ui/Icon.tsx`, que desenha os mesmos ícones do pacote
+ * `@solar-icons/react`, instalado com o programa.
+ */
+const slashes = (p: string): string => p.split('\\').join('/').toLowerCase();
+const CHIARO_COMPONENTS = slashes(resolve(root, 'design-system/chiaro/components'));
+export const OFFLINE_ICON = resolve(root, 'src/renderer/shared/ui/Icon.tsx');
+export function chiaroOfflineIcon(): Plugin {
+  return {
+    name: 'tp-chiaro-offline-icon',
+    enforce: 'pre',
+    resolveId(source, importer) {
+      if (!importer || !/(^|\/)Icon\.jsx$/.test(source)) return null;
+      return slashes(importer).startsWith(CHIARO_COMPONENTS) ? OFFLINE_ICON : null;
+    },
+  };
+}
+
 export const aliases = {
   '@chiaro': resolve(root, 'design-system/chiaro'),
   '@shared': resolve(root, 'src/shared'),
@@ -113,7 +134,7 @@ export default defineConfig(({ mode }) => {
       root: resolve(root, 'src/renderer'),
       define,
       resolve: { alias: aliases },
-      plugins: [react()],
+      plugins: [chiaroOfflineIcon(), react()],
       worker: { format: 'iife', plugins: () => [voskWorkerCode()] },
       server: { fs: { allow: [root] } },
       build: {

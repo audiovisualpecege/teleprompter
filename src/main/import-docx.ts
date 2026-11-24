@@ -133,5 +133,5 @@ export function ignoredMessage(ignored: IgnoredItems): string | null {
   n(ignored.textboxes, 'caixa de texto', 'caixas de texto');
   if (parts.length === 0) return null;
   const list = parts.length === 1 ? parts[0] : `${parts.slice(0, -1).join(', ')} e ${parts.at(-1)}`;
-  return `Só o texto corrido foi importado. Ficaram de fora: ${list}`;
+  return `Tabelas, imagens e caixas de texto foram ignoradas. Só o texto corrido foi importado (ficaram de fora: ${list})`;
 }

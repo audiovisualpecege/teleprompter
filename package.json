@@ -25,10 +25,12 @@
     "dist:mac": "npm run build && electron-builder --mac --x64 --arm64"
   },
   "dependencies": {
+    "@solar-icons/react": "^2.7.0",
     "@xmldom/xmldom": "^0.9.12",
     "electron-log": "^5.4.4",
     "jszip": "^3.10.2",
     "react": "^19.3.1",
+    "react-colorful": "^5.8.1",
     "react-dom": "^19.3.1",
     "sherpa-onnx-node": "2.0.3",
     "zod": "^4.6.7"

@@ -144,6 +144,10 @@ put(
   }),
 );
 put('fonte-grande.roteiro', json({ formato: 'teleprompter-roteiro', versao: 1, texto: 'Grande.', aparencia: { fontSize: 999 } }));
+put(
+  'fonte-ausente.roteiro',
+  json({ formato: 'teleprompter-roteiro', versao: 1, texto: 'Roteiro com uma fonte que não existe neste computador.', aparencia: { ...aparencia, fontFamily: 'Fonte Inexistente' } }),
+);
 put('outro-formato.roteiro', json({ formato: 'outro-programa', versao: 1, texto: 'x' }));
 put('nao-json.roteiro', 'isto não é JSON {');
 console.log('Fixtures geradas em', out);

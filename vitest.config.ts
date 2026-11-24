@@ -1,10 +1,10 @@
 import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
-import { aliases, buildDefines } from './electron.vite.config';
+import { aliases, buildDefines, chiaroOfflineIcon } from './electron.vite.config';
 
 // Os testes enxergam as mesmas constantes do build de teste (versão e ganchos).
 export default defineConfig({
-  plugins: [react()],
+  plugins: [chiaroOfflineIcon(), react()],
   define: buildDefines('test'),
   resolve: { alias: aliases },
   test: {
