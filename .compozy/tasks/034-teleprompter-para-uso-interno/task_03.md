@@ -1,5 +1,5 @@
 ---
-status: pending
+status: completed
 title: Estado central, motor de rolagem, roteiros e ajustes
 type: backend
 complexity: high

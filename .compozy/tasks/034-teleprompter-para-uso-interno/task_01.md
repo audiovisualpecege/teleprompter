@@ -1,5 +1,5 @@
 ---
-status: pending
+status: completed
 title: Esqueleto do programa, ícone, versão e núcleo compartilhado
 type: infra
 complexity: medium

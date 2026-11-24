@@ -1,5 +1,5 @@
 ---
-status: pending
+status: completed
 title: Prova da voz, motores Vosk e Parakeet e alinhador
 type: backend
 complexity: high
