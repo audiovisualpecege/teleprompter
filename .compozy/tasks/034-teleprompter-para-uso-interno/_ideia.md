@@ -62,6 +62,9 @@
 - 24/11/2026 10:26: Zerati via Claude Code registrou um passo da forja: Briefing em andamento: as perguntas chegam na aba Perguntas da forja.
 - 24/11/2026 10:38: Zerati via Claude Code publicou o briefing
 - 24/11/2026 10:39: Zerati via Claude Code registrou um passo da forja: Briefing publicado. Próximo: PRD.
+- 24/11/2026 10:39: Zerati via Claude Code registrou um passo da forja: PRD em andamento.
+- 24/11/2026 10:55: Zerati via Claude Code publicou o PRD
+- 24/11/2026 10:55: Zerati via Claude Code registrou um passo da forja: PRD publicado. Próximo: TechSpec.
 
 ## Perguntas da forja
 
@@ -113,3 +116,28 @@
   - b) Falta ou sobra algo: Use o campo Outro para dizer o que acrescentar, tirar ou mudar antes de fechar.
 - Resposta de Zerati em 24/11/2026 10:37:
   - Selecionadas: Pode fechar
+
+### pf_5yxfjesvak: Com a rolagem por voz ligada, o que o TP faz quando quem lê pula um trecho, volta atrás ou fala uma frase que aparece em dois lugares do roteiro? Na pesquisa, a queixa mais comum do PromptSmart (o TP com voz mais conhecido) é justamente o texto pular para a frente sozinho no meio da gravação.
+
+- Destinatário: Felipio
+- Status: respondida
+- Modo: escolha única
+- Opções:
+  - a) Acompanha só um pouco à frente (Recomendado): A voz procura as palavras só nas próximas linhas a partir da faixa de referência. Se a pessoa pular um trecho grande ou voltar atrás, o texto espera, e quem opera (ou quem lê, pelo teclado ou pedal) leva o texto até o ponto certo; dali a voz volta a acompanhar. Mais estável: frase repetida noutro ponto do roteiro não causa salto.
+  - b) Acompanha pulos para a frente: Como a primeira opção, mas se reconhecer com segurança uma frase mais adiante no roteiro, o texto salta até ela. Voltar atrás continua sendo manual. Ajuda quando quem lê corta trechos, com algum risco de salto errado em frases repetidas.
+  - c) Acompanha pulos para a frente e para trás: A voz procura no roteiro todo e leva o texto para onde a pessoa estiver lendo, inclusive quando ela volta para refazer uma frase. É o mais automático e o mais sujeito a saltos errados.
+- Resposta de Zerati em 24/11/2026 10:46:
+  - Selecionadas: Acompanha só um pouco à frente
+  - Nota: se tiver outra opção viável, podemos por como selecionável
+
+### pf_35crram2d6: Anotado: a voz acompanha só um pouco à frente por padrão, e o modo que acompanha pulos para a frente fica como opção selecionável. Agora: com a voz ligada, às vezes quem lê vai estar sozinho, sem ninguém olhando a tela de controle. Onde aparece o estado da voz (ouvindo, esperando, falhou)?
+
+- Destinatário: Felipio
+- Status: respondida
+- Modo: escolha única
+- Opções:
+  - a) Controle e um sinal discreto no TP (Recomendado): A tela de controle mostra o estado e um alerta forte quando a voz falha. As saídas de TP mostram também um sinal pequeno num canto (por exemplo, um ponto colorido), que quem lê percebe sem atrapalhar a leitura e que pode ser desligado em cada saída.
+  - b) Só na tela de controle: O estado e o alerta aparecem só para quem opera. As saídas de TP mostram apenas o texto. Se quem lê estiver sozinho, só percebe a falha quando o texto parar.
+  - c) Controle e aviso grande no TP só na falha: Em funcionamento normal o TP mostra só o texto. Quando a voz falha, aparece nas saídas um aviso bem visível por cima do texto, além do alerta na tela de controle.
+- Resposta de Zerati em 24/11/2026 10:47:
+  - Selecionadas: Controle e um sinal discreto no TP
