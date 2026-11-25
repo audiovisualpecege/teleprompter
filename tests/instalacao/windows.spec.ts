@@ -116,6 +116,13 @@ test('E2E-013 instalar no Windows, abrir sem rede e instalar por cima', async ()
     await expect(page.getByTestId('speed')).toHaveText('1,25x');
     await page.getByRole('button', { name: 'Voz', exact: true }).click();
     await expect(page.getByRole('status', { name: 'Estado da voz' })).toHaveText('Ouvindo', { timeout: 90_000 });
+    // Com o firewall descartando os pacotes, a consulta só termina no limite de 5 s;
+    // o resultado vai ao log quando ela termina.
+    await expect
+      .poll(() => (existsSync(LOG) ? readFileSync(LOG, 'utf8').includes('update.check') : false), { timeout: 20_000 })
+      .toBe(true);
+    // A tela continua normal, sem aviso de erro.
+    await expect(page.getByRole('status', { name: 'Versão nova' })).toHaveCount(0);
   } finally {
     await quit(app);
   }
