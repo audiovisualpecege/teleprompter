@@ -2,14 +2,16 @@
  * Processo principal: dono do estado e da rolagem (ADR-006). Liga o log, o tema
  * Noite, o relógio comum, o `AppStore` (roteiro, rolagem, ajustes, recuperação), a
  * abertura por arquivo, a janela de controle, as saídas de TP (com monitores, energia e
- * queda e volta) e os atalhos de todas as janelas. A voz completa chega na tarefa da voz.
+ * queda e volta), os atalhos de todas as janelas e a voz (`VoiceController`, com a
+ * captura e o motor na janela de controle e o Parakeet num `utilityProcess`).
  */
+import { join } from 'node:path';
 import * as electron from 'electron';
-import { app, ipcMain, Menu, nativeTheme, protocol } from 'electron';
-import type { ClockPong } from '@shared/ipc';
+import { app, ipcMain, MessageChannelMain, Menu, nativeTheme, protocol, systemPreferences, utilityProcess } from 'electron';
+import { PARAKEET_EXIT_MESSAGE, PARAKEET_PORT_CHANNEL, type ClockPong, type VoiceRunCommand } from '@shared/ipc';
 import { processNow } from '@shared/motion';
 import icon from '../../build/icons/256x256.png?asset';
-import { bindStore, bindStudio, type MainTransport } from './ipc-main';
+import { bindStore, bindStudio, bindVoice, type MainTransport } from './ipc-main';
 import { createFakeScreen, DisplayRegistry, parseFakeDisplays, type FakeDisplaySpec } from './displays';
 import { KeymapService } from './keymap';
 import { OutputManager, type OutputPlacement } from './outputs';
@@ -22,7 +24,9 @@ import { SettingsStore } from './settings';
 import { AppStore } from './store';
 import { installMainTestHooks, registerTestHook } from './test-hooks';
 import { createControlWindow } from './windows';
-import { handleModelScheme, modelsDir, registerModelScheme } from './models';
+import { availableEngines, handleModelScheme, modelsDir, registerModelScheme } from './models';
+import { launchParakeet, type ParakeetProcess } from './parakeet-process';
+import { VoiceController, type MicAccess } from './voice-controller';
 import type { PlatformDisplay, ScreenAdapter, WindowLike } from './platform';
 import { installPermissions } from './permissions';
 
@@ -54,6 +58,20 @@ const fileOpening = setupFileOpening(app, process.argv, () => {
 });
 
 /** Transporte do `AppStore` sobre `ipcMain`, falando com a janela de controle. */
+/**
+ * Permissão de microfone do sistema. No Mac, o programa pede na primeira vez
+ * (`askForMediaAccess`, com o `NSMicrophoneUsageDescription` do Info.plist); negada, a voz
+ * não liga e a tela explica como dar a permissão. No Windows, a negação aparece como
+ * `mic-denied` na captura.
+ */
+async function micAccess(): Promise<MicAccess> {
+  if (process.platform !== 'darwin') return 'granted';
+  const status = systemPreferences.getMediaAccessStatus('microphone');
+  if (status === 'granted') return 'granted';
+  if (status === 'denied' || status === 'restricted') return 'denied';
+  return (await systemPreferences.askForMediaAccess('microphone').catch(() => false)) ? 'granted' : 'denied';
+}
+
 function electronTransport(): MainTransport {
   return {
     handle(channel, fn) {
@@ -159,14 +177,68 @@ if (fileOpening.primary) {
         scroll: (cmd) => void store.scroll(cmd),
         automation: () => store.engine.automation,
         speed: () => store.engine.speed,
-        // O `VoiceController` (tarefa da voz) assume este atalho.
-        voiceToggle: () => logEvent('voice.toggle', { source: 'keymap' }),
+        voiceToggle: () => void voice.toggle(),
         closeOutput: (id) => void studio.close(id),
         editorBlur: () => controlWindow?.webContents.send('ui:blurEditor', null),
       },
     });
     keymap.attach(controlWindow, { kind: 'control' });
     bindStudio(store, studio, keymap, transport);
+
+    // Voz: a máquina de estados aqui, a captura e o motor na janela de controle.
+    const voiceModels = modelsDir({ isPackaged: app.isPackaged, resourcesPath: process.resourcesPath, appPath: app.getAppPath() });
+    let engines: ReturnType<typeof availableEngines> = { engines: ['vosk'], parakeetUnavailable: null };
+    try {
+      engines = availableEngines({ dir: voiceModels, platform: process.platform, arch: process.arch });
+    } catch (e) {
+      logEvent('voice.engines', { error: String(e) });
+    }
+    let parakeet: ParakeetProcess | null = null;
+    const stopParakeet = (): void => {
+      parakeet?.stop();
+      parakeet = null;
+    };
+    const voice = new VoiceController({
+      store,
+      settings,
+      scheduler: realScheduler(processNow),
+      now: processNow,
+      outputs: studio,
+      micAccess,
+      engines,
+      platform: process.platform,
+      log: logEvent,
+      port: {
+        run(cmd: VoiceRunCommand) {
+          // O Parakeet só fica aberto enquanto é o motor da voz.
+          if (cmd.op === 'stop' || (cmd.op === 'start' && cmd.engine !== 'parakeet')) stopParakeet();
+          transport.toControl('voice:run', cmd);
+        },
+      },
+    });
+    bindVoice(voice, transport);
+    // O Parakeet abre num utilityProcess quando a janela de controle pede; a porta do
+    // `asr:pcm` vai direto para a janela, sem passar pelo principal.
+    ipcMain.on('voice:wantParakeet', () => {
+      stopParakeet();
+      if (!controlWindow || controlWindow.isDestroyed()) return;
+      const proc = launchParakeet({
+        fork: (modulePath) => utilityProcess.fork(modulePath, [], { serviceName: 'Parakeet', stdio: 'ignore' }),
+        createChannel: () => new MessageChannelMain(),
+        modulePath: join(__dirname, 'parakeet-host.js'),
+        modelsDir: voiceModels,
+        onFault: (fault, detail) => {
+          logEvent('voice.parakeetExit', { detail });
+          if (parakeet === proc) parakeet = null;
+          controlWindow?.webContents.send(PARAKEET_EXIT_MESSAGE, detail);
+          voice.currentEngineFault(fault);
+        },
+      });
+      parakeet = proc;
+      (controlWindow.webContents as unknown as Electron.WebContents).postMessage(PARAKEET_PORT_CHANNEL, null, [
+        proc.rendererPort as Electron.MessagePortMain,
+      ]);
+    });
     ipcMain.on('render:longFrame', (e, payload: { count?: number; maxMs?: number }) => {
       logEvent('render.longFrame', { id: studio.outputIdOf(e.sender.id), count: payload?.count, maxMs: payload?.maxMs });
     });
@@ -201,6 +273,8 @@ if (fileOpening.primary) {
     const shutdown = (): void => {
       if (quitting) return;
       quitting = true;
+      voice.dispose();
+      stopParakeet();
       studio.dispose();
     };
     // Antes de sair, as gravações em curso (ajustes, recuperação) terminam.
@@ -246,6 +320,8 @@ if (fileOpening.primary) {
     void started.then(() => studio.restore());
     // O primeiro estado e o arquivo do duplo clique só depois de a tela carregar.
     controlWindow.webContents.on('did-finish-load', () => {
+      // A janela recarregada perdeu a captura e o motor: a voz desliga.
+      voice.turnOff();
       void started.then(() => {
         controlWindow?.webContents.send('state:snapshot', store.snapshot());
         controlWindow?.webContents.send('layout:request', store.currentLayoutRequest());

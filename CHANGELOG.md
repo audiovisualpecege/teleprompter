@@ -15,7 +15,10 @@ Primeira versão do Teleprompter da Chiaro Filmes, para Windows e Mac.
 - Se um monitor de TP for desligado, as outras saídas continuam e a tela de controle avisa qual saída caiu. Quando o monitor volta, a saída reabre sozinha, com as inversões que tinha.
 - Com alguma saída aberta, o computador não apaga a tela nem entra em suspensão.
 - Os atalhos de teclado funcionam com qualquer janela do programa em foco, inclusive com pedais e passadores, e podem ser trocados na aba Atalhos. Com o cursor no editor, os atalhos ficam inativos e a tela avisa; Esc sai do editor.
-- Fechar a tela de controle fecha o programa e todas as saídas, perguntando antes se há alterações não salvas.
+- A rolagem por voz liga pelo botão Voz ou pela tecla V: o texto acompanha a leitura, espera quando você improvisa ou faz uma pausa e nunca volta sozinho. Ligar a voz pausa a rolagem automática, e iniciar a automática desliga a voz. Os botões, as teclas e o pedal valem sempre por cima, e a voz continua dali.
+- Na aba Voz você escolhe o microfone (inclusive cada entrada de uma interface de áudio), confere o nível num medidor, escolhe o motor (Vosk ou Parakeet, onde ele roda) e o modo ("Perto" ou "Pulos para a frente"). Tudo fica guardado neste computador.
+- O estado da voz aparece ao lado das ações, com texto e cor: Preparando, Ouvindo, Esperando ou Falhou. Se o microfone cair, o reconhecimento parar ou o computador não der conta, uma faixa vermelha diz o motivo, o texto fica parado e visível nas saídas, e a voz volta sozinha quando o problema se resolve.
+- - Fechar a tela de controle fecha o programa e todas as saídas, perguntando antes se há alterações não salvas.
 - Tem ícone próprio de teleprompter no menu Iniciar, no Dock e nos arquivos de roteiro (`.roteiro`).
 - Instala no Windows com um instalador próprio e no Mac com uma imagem de disco para Intel e Apple Silicon.
 - Funciona sem internet: as fontes da Chiaro vão junto com o programa.

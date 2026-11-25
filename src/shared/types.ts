@@ -128,6 +128,29 @@ export interface Notice {
   id: string;
   kind: NoticeKind;
   message: string;
+  /**
+   * Hora do aviso (acréscimo à TechSpec, tarefa 6): uma falha repetida mantém o mesmo
+   * aviso, com a hora atualizada (US-034 EC-2).
+   */
+  at?: number;
+}
+
+/** Entrada de áudio, pelo nome que o sistema dá (acréscimo à TechSpec, tarefa 6). */
+export interface MicDevice {
+  deviceId: string;
+  label: string;
+}
+
+/**
+ * Ajustes da tela de voz que a janela de controle não descobre sozinha (acréscimo à
+ * TechSpec, tarefa 6): o microfone guardado e os motores que carregam neste computador.
+ */
+export interface VoiceSetup {
+  micDeviceId: string | null;
+  micLabel: string | null;
+  engines: EngineId[];
+  /** Por que o Parakeet não aparece nesta plataforma, se for o caso. */
+  parakeetUnavailable: string | null;
 }
 
 export type FileErrorCode =
@@ -205,6 +228,7 @@ export interface StateSnapshot {
   automation: Automation;
   speed: number;
   voice: VoiceStatus;
+  voiceSetup: VoiceSetup;
   outputs: OutputInfo[];
   displays: DisplayInfo[];
   editorFocused: boolean;

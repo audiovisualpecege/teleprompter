@@ -51,6 +51,12 @@ export interface ScrollEngine {
   /** Outro roteiro (abrir, novo, primeiro confirmar): posição 0 e automática pausada. */
   load(layout: LayoutResult | null, now: number): void;
   anchorAt(now: number): Anchor;
+  /**
+   * A voz falhou ou foi desligada: um deslizamento da voz em curso para onde está
+   * (`hold`). Nunca corta um movimento manual nem a rolagem automática (acréscimo à
+   * TechSpec, tarefa 6).
+   */
+  holdVoice(now: number): void;
   readonly segment: MotionSegment;
   readonly layout: LayoutResult | null;
   readonly automation: 'none' | 'auto';
@@ -81,6 +87,8 @@ export function createScrollEngine(options: ScrollEngineOptions = {}): ScrollEng
   let held: 1 | -1 | null = null;
   let speed = clampSpeed(options.speed ?? SPEED_DEFAULT);
   let lastManualAt = -Infinity;
+  /** O trecho atual é um deslizamento pedido pela voz. */
+  let voiceGlide = false;
   let cancelTimer: (() => void) | null = null;
   const segListeners = new Set<(s: MotionSegment) => void>();
   const endListeners = new Set<() => void>();
@@ -97,8 +105,9 @@ export function createScrollEngine(options: ScrollEngineOptions = {}): ScrollEng
   /** Base dos comandos encadeados: o alvo pendente, não a posição desenhada (US-021 EC-3). */
   const base = (now: number): number => (glideActive(now) ? segmentTarget(seg) : pos(now));
 
-  const emit = (s: MotionSegment): void => {
+  const emit = (s: MotionSegment, fromVoice = false): void => {
     seg = s;
+    voiceGlide = fromVoice;
     for (const cb of [...segListeners]) cb(s);
   };
   const stopTimer = (): void => {
@@ -308,7 +317,7 @@ export function createScrollEngine(options: ScrollEngineOptions = {}): ScrollEng
         const lh = lineHeight() || 1;
         const dur = clamp(Math.round(((target - from) / lh) * VOICE_MS_PER_LINE), VOICE_GLIDE_MS.min, VOICE_GLIDE_MS.max);
         stopTimer();
-        emit({ kind: 'glide', y0: pos(now), y1: target, t0: now, durMs: dur });
+        emit({ kind: 'glide', y0: pos(now), y1: target, t0: now, durMs: dur }, true);
         return 'ok';
       }
     }
@@ -350,6 +359,11 @@ export function createScrollEngine(options: ScrollEngineOptions = {}): ScrollEng
     },
     load,
     anchorAt: (now) => anchorForY(pos(now)),
+    holdVoice(now) {
+      if (auto || held !== null) return;
+      if (glideActive(now) && !voiceGlide) return; // movimento manual em curso: vale o manual
+      emit({ kind: 'hold', y: pos(now) });
+    },
     get segment() {
       return seg;
     },

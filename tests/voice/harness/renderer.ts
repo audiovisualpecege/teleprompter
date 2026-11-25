@@ -34,6 +34,8 @@ export interface HarnessResult {
   events: { cursor: number; t: number; jumped: boolean }[];
   lags: number[];
   hypotheses: { partial: number; final: number };
+  /** Cada hipótese do motor, com o instante (relógio de `epochNow`), para repetir no `VoiceController`. */
+  heard: { t: number; words: string[]; final: boolean }[];
   faults: string[];
 }
 
@@ -121,6 +123,7 @@ async function run(): Promise<HarnessResult> {
     events: [],
     lags: [],
     hypotheses: { partial: 0, final: 0 },
+    heard: [],
     faults: [],
   };
   const roteiro = await (await fetch(`tp-fixture://f/${cfg.roteiro}`)).text();
@@ -139,6 +142,7 @@ async function run(): Promise<HarnessResult> {
   engine.onLag((l) => result.lags.push(l));
   engine.onHypothesis((h) => {
     result.hypotheses[h.final ? 'final' : 'partial']++;
+    result.heard.push({ t: epochNow(), words: h.words, final: h.final });
     const r = track({ tokens, cursor, mode: cfg.mode, heard: h.words });
     if (r.cursor > cursor) {
       cursor = r.cursor;

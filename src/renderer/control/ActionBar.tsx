@@ -6,20 +6,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { SPEED_MAX, SPEED_MIN, SPEED_STEP } from '@shared/defaults';
 import { formatSpeed } from '@shared/speed';
-import type { Keymap, ManualScrollCommand, ScrollDir, VoiceState } from '@shared/types';
+import type { Keymap, ManualScrollCommand, ScrollDir } from '@shared/types';
 import { Button, Tooltip } from '../shared/ui/chiaro';
 import { useControlStore, useSnapshot } from './hooks';
 import { shortcutHint } from './shortcuts';
+import { VoiceStateBadge } from './VoiceStatus';
 
 export { comboLabel, shortcutHint } from './shortcuts';
-
-const VOICE_LABEL: Record<VoiceState, string> = {
-  off: 'Desligada',
-  preparing: 'Preparando',
-  listening: 'Ouvindo',
-  waiting: 'Esperando',
-  failed: 'Falhou',
-};
 
 /** Janela pequena (até a mínima, 960 x 640): botões médios, para a barra caber em duas linhas. */
 const COMPACT_QUERY = '(max-height: 760px), (max-width: 1100px)';
@@ -137,10 +130,7 @@ export function ActionBar() {
           Voz
         </Button>
       </Tooltip>
-      <span className={`tp-voice-state tp-voice-${snapshot.voice.state}`} role="status" aria-label="Estado da voz">
-        <span className="tp-voice-dot" aria-hidden="true" />
-        {VOICE_LABEL[snapshot.voice.state]}
-      </span>
+      <VoiceStateBadge state={snapshot.voice.state} />
     </div>
   );
 }

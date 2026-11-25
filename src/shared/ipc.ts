@@ -18,6 +18,7 @@ import type {
   Keymap,
   LayoutResult,
   ManualScrollCommand,
+  MicDevice,
   OutputInfo,
   Result,
   Settings,
@@ -70,6 +71,49 @@ export type VoiceCommand =
   | { op: 'setMode'; mode: VoiceMode };
 export type VoiceFailure = 'no-text' | 'no-mic' | 'mic-denied';
 
+/**
+ * Principal → janela de controle (acréscimo à TechSpec, tarefa 6): o `VoiceController`
+ * mora no principal, mas a captura e o motor rodam na janela de controle. Cada ligação
+ * da voz é uma sessão; as respostas (`asr:*`) trazem a sessão, e o principal descarta as
+ * de uma sessão velha (ligar e desligar seguidos, US-028 EC-4).
+ *
+ * - `start`: carrega o motor, liga a captura no microfone e responde `asr:ready`.
+ * - `stop`: desliga a captura e o motor.
+ * - `setVocabulary`: novo texto confirmado com a voz ligada.
+ * - `setMic`: troca o microfone com a voz ligada, sem desligar o motor.
+ */
+export type VoiceRunCommand =
+  | { op: 'start'; session: number; engine: EngineId; deviceId: string | null; vocabulary: string[] }
+  | { op: 'stop'; session: number }
+  | { op: 'setVocabulary'; session: number; vocabulary: string[] }
+  | { op: 'setMic'; session: number; deviceId: string | null };
+
+/** Respostas da janela de controle, com a sessão que as gerou (acréscimo à TechSpec, tarefa 6). */
+export interface AsrHypothesisMsg extends Hypothesis {
+  session: number;
+}
+export interface AsrFaultMsg {
+  session: number;
+  fault: EngineFault;
+  detail?: string;
+}
+export interface AsrLagMsg {
+  session: number;
+  lagMs: number;
+}
+export interface AsrReadyMsg {
+  session: number;
+}
+
+/**
+ * Entradas de áudio vistas pela janela de controle (`enumerateDevices`), mandadas na
+ * abertura e a cada `devicechange` (acréscimo à TechSpec, tarefa 6): o principal não vê
+ * os microfones e precisa deles para recusar `no-mic` e avisar do microfone guardado ausente.
+ */
+export interface VoiceDevicesMsg {
+  devices: MicDevice[];
+}
+
 export type KeymapCommand =
   | { op: 'set'; action: ActionId; combo: KeyCombo; force?: boolean }
   | { op: 'clear'; action: ActionId }
@@ -119,10 +163,13 @@ export interface ControlInvokeChannels {
 /** Janela de controle → principal, sem resposta. */
 export interface ControlSendChannels {
   'cmd:scroll': ManualScrollCommand;
-  'asr:hypothesis': Hypothesis;
-  'asr:fault': EngineFault;
-  'asr:lag': number;
-  'asr:ready': void;
+  'asr:hypothesis': AsrHypothesisMsg;
+  'asr:fault': AsrFaultMsg;
+  'asr:lag': AsrLagMsg;
+  'asr:ready': AsrReadyMsg;
+  'voice:devices': VoiceDevicesMsg;
+  /** Pede ao principal o `utilityProcess` do Parakeet; a porta do `asr:pcm` chega por `voice:parakeetPort`. */
+  'voice:wantParakeet': null;
   'ui:editorFocus': boolean;
   /**
    * A tela de atalhos está gravando uma combinação (acréscimo à TechSpec, tarefa 5): as
@@ -139,6 +186,7 @@ export interface ControlEvents {
   'motion:segment': MotionSegment;
   /** Esc com o editor em foco (capturado pelo principal): a tela tira o foco do editor. */
   'ui:blurEditor': null;
+  'voice:run': VoiceRunCommand;
 }
 
 /** Saída → principal, com resposta. */
@@ -182,6 +230,8 @@ export const CONTROL_SEND_CHANNELS = [
   'asr:fault',
   'asr:lag',
   'asr:ready',
+  'voice:devices',
+  'voice:wantParakeet',
   'ui:editorFocus',
   'ui:keyCapture',
   'layout:result',
@@ -192,6 +242,7 @@ export const CONTROL_EVENT_CHANNELS = [
   'state:snapshot',
   'motion:segment',
   'ui:blurEditor',
+  'voice:run',
 ] as const satisfies readonly ControlEventChannel[];
 
 export const OUTPUT_INVOKE_CHANNELS = ['clock:ping'] as const satisfies readonly OutputInvokeChannel[];
@@ -245,6 +296,14 @@ export type AsrPcmResponse =
   | { words: string[]; final: boolean; audioEndMs: number }
   | { fault: EngineFault; detail?: string }
   | { ready: true };
+
+/**
+ * A porta do `asr:pcm` do Parakeet chega à janela de controle por `webContents.postMessage`
+ * neste canal; o preload a repassa à página com `window.postMessage` e esta marca.
+ */
+export const PARAKEET_PORT_CHANNEL = 'voice:parakeetPort';
+/** Aviso do preload à página de que o processo do Parakeet terminou. */
+export const PARAKEET_EXIT_MESSAGE = 'tp:parakeet-exit';
 
 /** Prefixo dos canais de teste, que só existem no build de teste. */
 export const TEST_CHANNEL_PREFIX = 'test:';

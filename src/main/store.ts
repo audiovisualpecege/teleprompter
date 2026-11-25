@@ -30,6 +30,7 @@ import {
   type ScrollCommand,
   type Settings,
   type StateSnapshot,
+  type VoiceSetup,
   type VoiceStatus,
 } from '@shared/types';
 import { ignoredMessage } from './import-docx';
@@ -64,6 +65,12 @@ export const MISSING_FONT_NOTICE = 'missing-font';
 export const missingFontMessage = (family: string): string =>
   `A fonte ${family} não está instalada neste computador. O texto aparece em Archivo`;
 
+/** Como o último layout foi aplicado: outro roteiro, texto novo ou só a aparência. */
+export type LayoutKind = 'load' | 'replace' | 'relayout';
+
+/** Estado da voz que vem do `VoiceController` (o motor e o modo vêm dos ajustes). */
+export type VoiceRuntimeState = Pick<VoiceStatus, 'state' | 'fault' | 'lagMs'>;
+
 const needsConfirmation = (): DocResult => err({ code: 'needs-confirmation', options: UNSAVED_OPTIONS });
 
 export class AppStore {
@@ -85,7 +92,8 @@ export class AppStore {
   private noticeSeq = 0;
   private prompt: DocPrompt | null = null;
   private editorFocused = false;
-  private voice: VoiceStatus;
+  private voice: VoiceRuntimeState = { state: 'off', fault: null, lagMs: null };
+  private voiceSetup: Omit<VoiceSetup, 'micDeviceId' | 'micLabel'> = { engines: ['vosk'], parakeetUnavailable: null };
   private studio: StudioState | null = null;
 
   private revision = 0;
@@ -105,6 +113,8 @@ export class AppStore {
   private readonly layoutRequestListeners = new Set<(r: LayoutRequest) => void>();
   private readonly layoutListeners = new Set<(l: LayoutResult) => void>();
   private readonly quitListeners = new Set<() => void>();
+  private readonly scrollListeners = new Set<(cmd: ScrollCommand, result: ScrollApplyResult) => void>();
+  private readonly docLayoutListeners = new Set<(kind: LayoutKind, layout: LayoutResult, text: string) => void>();
 
   constructor(options: AppStoreOptions) {
     this.files = options.files;
@@ -116,7 +126,6 @@ export class AppStore {
     const s = this.settings.settings;
     this.appearance = { ...s.lastAppearance };
     this.saved = { text: '', appearance: { ...this.appearance } };
-    this.voice = { state: 'off', fault: null, engine: s.voiceEngine, mode: s.voiceMode, lagMs: null };
     this.engine = options.engine ?? createScrollEngine({ scheduler: this.scheduler, speed: s.speed });
     this.engine.onSegment((seg) => this.segmentListeners.forEach((cb) => cb(seg)));
     this.engine.onAutoEnded(() => this.publish());
@@ -130,7 +139,6 @@ export class AppStore {
     const { settings, corrupt } = this.settings.load();
     this.appearance = { ...settings.lastAppearance };
     this.saved = { text: '', appearance: { ...this.appearance } };
-    this.voice = { ...this.voice, engine: settings.voiceEngine, mode: settings.voiceMode };
     this.engine.apply({ type: 'setSpeed', speed: settings.speed }, this.now());
     if (corrupt) this.notify('warning', 'Os ajustes guardados não puderam ser lidos. O programa voltou aos ajustes padrão', 'settings.corrupt');
     const rec = await this.recovery.read();
@@ -158,6 +166,20 @@ export class AppStore {
     this.layoutListeners.add(cb);
     return () => this.layoutListeners.delete(cb);
   }
+  /**
+   * Cada comando de rolagem aplicado, com o resultado (acréscimo à TechSpec, tarefa 6): o
+   * `VoiceController` desliga a voz quando a automática começa e ressincroniza o cursor
+   * depois de um comando manual.
+   */
+  onScroll(cb: (cmd: ScrollCommand, result: ScrollApplyResult) => void): () => void {
+    this.scrollListeners.add(cb);
+    return () => this.scrollListeners.delete(cb);
+  }
+  /** Layout aplicado ao motor de rolagem, com o tipo da troca e o texto diagramado. */
+  onDocLayout(cb: (kind: LayoutKind, layout: LayoutResult, text: string) => void): () => void {
+    this.docLayoutListeners.add(cb);
+    return () => this.docLayoutListeners.delete(cb);
+  }
   /** O fechamento foi liberado (sem alterações ou depois da resposta). */
   onQuit(cb: () => void): () => void {
     this.quitListeners.add(cb);
@@ -178,6 +200,28 @@ export class AppStore {
     return this.engine.layout;
   }
 
+  /** Texto confirmado (o que as saídas mostram). */
+  get confirmedText(): string {
+    return this.confirmed;
+  }
+
+  get voiceState(): VoiceRuntimeState {
+    return { ...this.voice };
+  }
+
+  /** Estado da voz vindo do `VoiceController`. */
+  setVoice(next: VoiceRuntimeState): void {
+    const same = next.state === this.voice.state && next.fault === this.voice.fault && next.lagMs === this.voice.lagMs;
+    this.voice = { ...next };
+    if (!same) this.publish();
+  }
+
+  /** Motores que carregam neste computador. */
+  setVoiceEngines(engines: VoiceSetup['engines'], parakeetUnavailable: string | null): void {
+    this.voiceSetup = { engines: [...engines], parakeetUnavailable };
+    this.publish();
+  }
+
   snapshot(): StateSnapshot {
     return {
       doc: {
@@ -188,9 +232,16 @@ export class AppStore {
         pending: this.pending,
       },
       appearance: { ...this.appearance },
-      automation: this.engine.automation,
+      // Uma automação por vez (ADR-005): a voz ligada é a automação do momento.
+      automation: this.engine.automation === 'auto' ? 'auto' : this.voice.state !== 'off' ? 'voice' : 'none',
       speed: this.engine.speed,
-      voice: { ...this.voice },
+      voice: { ...this.voice, engine: this.settings.settings.voiceEngine, mode: this.settings.settings.voiceMode },
+      voiceSetup: {
+        micDeviceId: this.settings.settings.micDeviceId,
+        micLabel: this.settings.settings.micLabel,
+        engines: [...this.voiceSetup.engines],
+        parakeetUnavailable: this.voiceSetup.parakeetUnavailable,
+      },
       outputs: this.studio?.outputs() ?? [],
       displays: this.studio?.displays() ?? [],
       editorFocused: this.editorFocused,
@@ -214,6 +265,7 @@ export class AppStore {
     const r = this.engine.apply(cmd, this.now());
     if (this.engine.speed !== before.speed) void this.settings.update({ speed: this.engine.speed });
     if (this.engine.automation !== before.automation || this.engine.speed !== before.speed) this.publish();
+    for (const cb of [...this.scrollListeners]) cb(cmd, r);
     return r;
   }
 
@@ -251,9 +303,18 @@ export class AppStore {
     // Primeiro o layout às janelas, depois o trecho reancorado.
     this.layoutListeners.forEach((cb) => cb(layout));
     const now = this.now();
-    if (this.resetOnLayout || this.appliedText === null) this.engine.load(layout, now);
-    else if (text !== this.appliedText) this.engine.replaceText(this.appliedText, text, layout, now);
-    else this.engine.relayout(layout, now);
+    let kind: LayoutKind;
+    if (this.resetOnLayout || this.appliedText === null) {
+      kind = 'load';
+      this.engine.load(layout, now);
+    } else if (text !== this.appliedText) {
+      kind = 'replace';
+      this.engine.replaceText(this.appliedText, text, layout, now);
+    } else {
+      kind = 'relayout';
+      this.engine.relayout(layout, now);
+    }
+    for (const cb of [...this.docLayoutListeners]) cb(kind, layout, text);
     this.resetOnLayout = false;
     this.appliedText = text;
     this.appliedRevision = layout.revision;
@@ -281,7 +342,6 @@ export class AppStore {
     if (cmd.op === 'resetAll') {
       const s = await this.settings.resetAll();
       this.engine.apply({ type: 'setSpeed', speed: s.speed }, this.now());
-      this.voice = { ...this.voice, engine: s.voiceEngine, mode: s.voiceMode };
       this.publish();
       return s;
     }
@@ -356,10 +416,14 @@ export class AppStore {
     this.publish();
   }
 
-  /** Aviso vindo de outra peça (saída caída); o mesmo `id` substitui o anterior. */
-  addNotice(id: string, kind: NoticeKind, message: string): void {
-    this.notify(kind, message, id);
+  /** Aviso vindo de outra peça (saída caída, voz); o mesmo `id` substitui o anterior. */
+  addNotice(id: string, kind: NoticeKind, message: string, at?: number): void {
+    this.notify(kind, message, id, at);
     this.publish();
+  }
+
+  hasNotice(id: string): boolean {
+    return this.notices.some((n) => n.id === id);
   }
 
   removeNotice(id: string): void {
@@ -510,9 +574,10 @@ export class AppStore {
     return err(error);
   }
 
-  private notify(kind: NoticeKind, message: string, id?: string): void {
+  private notify(kind: NoticeKind, message: string, id?: string, at?: number): void {
     const nid = id ?? `n${++this.noticeSeq}`;
-    this.notices = [...this.notices.filter((n) => n.id !== nid), { id: nid, kind, message }].slice(-MAX_NOTICES);
+    const notice: Notice = at === undefined ? { id: nid, kind, message } : { id: nid, kind, message, at };
+    this.notices = [...this.notices.filter((n) => n.id !== nid), notice].slice(-MAX_NOTICES);
   }
 
   /* ---------- Recuperação ---------- */

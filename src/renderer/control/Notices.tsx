@@ -8,6 +8,7 @@
 import { useState } from 'react';
 import type { DocCommand, UnsavedChoice } from '@shared/ipc';
 import type { Notice, NoticeKind } from '@shared/types';
+import { VOICE_FAULT_NOTICE } from '@shared/voice';
 import { Button, Dialog, Toast } from '../shared/ui/chiaro';
 import { UnsavedDialog } from './FileBar';
 import { useControlStore, useSnapshot } from './hooks';
@@ -19,12 +20,13 @@ const TONE: Record<NoticeKind, 'default' | 'success' | 'danger'> = {
   danger: 'danger',
 };
 
-const noticeKey = (n: Notice): string => `${n.id}|${n.message}`;
+const noticeKey = (n: Notice): string => `${n.id}|${n.message}|${n.at ?? ''}`;
 
 export function Notices() {
   const { notices } = useSnapshot();
   const [hidden, setHidden] = useState<ReadonlySet<string>>(new Set());
-  const visible = notices.filter((n) => !hidden.has(noticeKey(n)));
+  // A falha da voz não é um aviso comum: aparece como a faixa de alerta (VoiceAlert).
+  const visible = notices.filter((n) => n.id !== VOICE_FAULT_NOTICE && !hidden.has(noticeKey(n)));
   if (visible.length === 0) return null;
   return (
     <div className="tp-notices" aria-live="polite">

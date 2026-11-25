@@ -17,6 +17,8 @@ import { Notices, PromptDialogs } from './Notices';
 import { OutputsPanel } from './OutputsPanel';
 import { Preview } from './Preview';
 import { ShortcutsPanel } from './ShortcutsPanel';
+import { VoicePanel } from './VoicePanel';
+import { VoiceAlert } from './VoiceStatus';
 
 export function VersionTag() {
   // A versão vem só do package.json, pelo build; nunca é digitada aqui.
@@ -33,9 +35,8 @@ const TABS: { value: TabId; label: string }[] = [
   { value: 'sobre', label: 'Sobre' },
 ];
 
-/** Espaço das abas de estúdio que as tarefas da voz e da entrega preenchem. */
-const STUDIO_TEXT: Record<'voz' | 'sobre', string> = {
-  voz: 'Aqui você escolhe o microfone e o jeito como a voz acompanha a leitura.',
+/** Espaço da aba que a tarefa da entrega preenche. */
+const STUDIO_TEXT: Record<'sobre', string> = {
   sobre: 'Versão do programa e pasta de registros.',
 };
 
@@ -47,6 +48,8 @@ function TabPanel({ tab }: { tab: TabId }) {
       return <OutputsPanel />;
     case 'atalhos':
       return <ShortcutsPanel />;
+    case 'voz':
+      return <VoicePanel />;
     default:
       return <p className="tp-muted">{STUDIO_TEXT[tab]}</p>;
   }
@@ -62,6 +65,7 @@ function ControlScreen() {
         <div className="tp-stage-column">
           <Preview />
           <ActionBar />
+          <VoiceAlert />
           <section className="tp-tabs" aria-label="Aparência e estúdio">
             <Tabs items={TABS} value={tab} onChange={(v) => setTab(v as TabId)} />
             <div className="tp-tab-panel" role="tabpanel" data-tab={tab}>

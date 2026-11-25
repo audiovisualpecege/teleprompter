@@ -35,6 +35,9 @@ export default defineConfig({
           environment: 'node',
           include: ['tests/**/*.voice.test.ts'],
           testTimeout: 120_000,
+          // Um arquivo por vez: todos compilam o mesmo banco de medição em out-voice/ e
+          // medem atraso em tempo real, que outro Electron rodando junto atrapalharia.
+          fileParallelism: false,
         },
       },
     ],

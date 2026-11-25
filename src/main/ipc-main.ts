@@ -13,9 +13,24 @@ import type { LayoutResult } from '@shared/types';
 import type { KeymapService } from './keymap';
 import type { OutputManager } from './outputs';
 import type { AppStore } from './store';
+import type { VoiceController } from './voice-controller';
 
-type StoreInvoke = Pick<ControlInvokeChannels, 'cmd:doc' | 'cmd:appearance' | 'cmd:settings' | 'cmd:output' | 'cmd:keymap'>;
-type StoreSend = Pick<ControlSendChannels, 'cmd:scroll' | 'layout:result' | 'ui:editorFocus' | 'ui:keyCapture'>;
+type StoreInvoke = Pick<
+  ControlInvokeChannels,
+  'cmd:doc' | 'cmd:appearance' | 'cmd:settings' | 'cmd:output' | 'cmd:keymap' | 'cmd:voice'
+>;
+type StoreSend = Pick<
+  ControlSendChannels,
+  | 'cmd:scroll'
+  | 'layout:result'
+  | 'ui:editorFocus'
+  | 'ui:keyCapture'
+  | 'asr:hypothesis'
+  | 'asr:fault'
+  | 'asr:lag'
+  | 'asr:ready'
+  | 'voice:devices'
+>;
 
 export interface MainTransport {
   handle<C extends keyof StoreInvoke>(
@@ -68,4 +83,21 @@ export function bindStudio(store: AppStore, outputs: OutputManager, keymap: Keym
     offs.forEach((off) => off());
     store.setStudio(null);
   };
+}
+
+/**
+ * Liga o `VoiceController` aos canais da voz: `cmd:voice` e as respostas da janela de
+ * controle (`asr:*`, `voice:devices`). Os comandos para a janela (`voice:run`) saem pela
+ * `VoicePort` do controlador.
+ */
+export function bindVoice(voice: VoiceController, t: MainTransport): () => void {
+  const offs: (() => void)[] = [
+    t.handle('cmd:voice', (cmd) => voice.command(cmd)),
+    t.on('asr:ready', (m) => voice.ready(m)),
+    t.on('asr:hypothesis', (m) => voice.hypothesis(m)),
+    t.on('asr:fault', (m) => voice.engineFault(m)),
+    t.on('asr:lag', (m) => voice.lag(m)),
+    t.on('voice:devices', (m) => voice.devicesChanged(m?.devices ?? [])),
+  ];
+  return () => offs.forEach((off) => off());
 }

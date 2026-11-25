@@ -12,12 +12,24 @@
 import { DEFAULT_APPEARANCE, defaultKeymap } from '@shared/defaults';
 import type { ControlBridge } from '@shared/ipc';
 import type { MotionSegment } from '@shared/motion';
-import type { LayoutResult, StateSnapshot } from '@shared/types';
+import type { LayoutResult, MicDevice, StateSnapshot } from '@shared/types';
 import { createCommonClock, type CommonClock } from '../shared/clock';
 import { bindLayoutService, type LayoutService } from './layout-service';
 
+/** O que a tela de voz usa da voz da janela (`VoiceRuntime`): microfones e nível. */
+export interface VoiceView {
+  readonly deviceList: MicDevice[];
+  onDevices(cb: (list: MicDevice[]) => void): () => void;
+  readonly currentLevel: number;
+  onLevel(cb: (rms: number) => void): () => void;
+  /** A tela de voz aberta pede o medidor (`undefined` desliga). */
+  monitor(deviceId: string | null | undefined): void;
+}
+
 export interface ControlStore {
   readonly bridge: ControlBridge | null;
+  /** Voz da janela (microfones e medidor); `null` nos testes sem voz. */
+  readonly voice: VoiceView | null;
   readonly clock: { now(): number };
   getSnapshot(): StateSnapshot;
   getSegment(): MotionSegment;
@@ -36,6 +48,7 @@ export function emptySnapshot(): StateSnapshot {
     automation: 'none',
     speed: 1,
     voice: { state: 'off', fault: null, engine: 'vosk', mode: 'near', lagMs: null },
+    voiceSetup: { micDeviceId: null, micLabel: null, engines: ['vosk'], parakeetUnavailable: null },
     outputs: [],
     displays: [],
     editorFocused: false,
@@ -51,6 +64,7 @@ export interface ControlStoreOptions {
   layoutService?: LayoutService | null;
   clock?: CommonClock | { now(): number };
   initial?: StateSnapshot;
+  voice?: VoiceView | null;
 }
 
 export function createControlStore(options: ControlStoreOptions): ControlStore {
@@ -99,6 +113,7 @@ export function createControlStore(options: ControlStoreOptions): ControlStore {
 
   return {
     bridge,
+    voice: options.voice ?? null,
     clock,
     getSnapshot: () => snapshot,
     getSegment: () => segment,
