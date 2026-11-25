@@ -7,7 +7,7 @@ import { existsSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { expect, test, type ElectronApplication, type Page } from '@playwright/test';
-import { launchApp, ROOT } from './app';
+import { closeApp, launchApp, ROOT } from './app';
 
 const FIXTURES = join(ROOT, 'tests', 'fixtures');
 const version = (JSON.parse(readFileSync(join(ROOT, 'package.json'), 'utf8')) as { version: string }).version;
@@ -103,7 +103,7 @@ test('E2E-001 primeira abertura, colar, aparência, salvar e reabrir', async () 
     await toolbar(page, 'Salvar como').click();
     await expect(page.getByTestId('file-name')).toHaveText('aula.roteiro');
     expect(existsSync(saved)).toBe(true);
-    await app.close();
+    await closeApp(app);
 
     ({ app, page } = await open(userData));
     await nextOpen(app, saved);
@@ -113,7 +113,7 @@ test('E2E-001 primeira abertura, colar, aparência, salvar e reabrir', async () 
     await expect.poll(() => probe<Record<string, unknown>>(page, 'appearance')).toMatchObject({ ...appearance });
     await expect.poll(() => probe<string[]>(page, 'lines').then((l) => l[0])).toBe('BOM DIA A TODOS.');
   } finally {
-    await app.close();
+    await closeApp(app);
   }
 });
 
@@ -135,7 +135,7 @@ test('E2E-002 importar .txt em Latin-1 e .docx com tabela e imagem', async () =>
     await page.getByRole('button', { name: 'Confirmar alterações' }).click();
     await expect.poll(() => probe<string[]>(page, 'lines')).toEqual(['Texto antes da tabela.', 'Texto depois.']);
   } finally {
-    await app.close();
+    await closeApp(app);
   }
 });
 
@@ -162,7 +162,7 @@ test('E2E-003 diálogo escuro de alterações não salvas em "Novo" e em "Import
     await dialog(page).getByRole('button', { name: 'Cancelar' }).click();
     await expect(editor(page)).toHaveValue('Texto que ainda não foi salvo.');
   } finally {
-    await app.close();
+    await closeApp(app);
   }
 });
 
@@ -182,7 +182,7 @@ test('E2E-017 abrir o programa com um .roteiro como argumento', async () => {
     await expect(page.getByRole('button', { name: 'Iniciar' })).toBeEnabled();
     await expect(page.getByRole('button', { name: 'Confirmar alterações' })).toBeDisabled();
   } finally {
-    await app.close();
+    await closeApp(app);
   }
 });
 
@@ -204,6 +204,6 @@ test('IT-025 roteiro com fonte ausente é diagramado em Archivo, com aviso', asy
     });
     expect(width).toBeLessThanOrEqual(1920 * (1 - 2 * 0.15));
   } finally {
-    await app.close();
+    await closeApp(app);
   }
 });

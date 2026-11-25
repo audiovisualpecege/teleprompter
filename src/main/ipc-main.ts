@@ -10,10 +10,12 @@ import type {
   OutputEvents,
 } from '@shared/ipc';
 import type { LayoutResult } from '@shared/types';
+import type { KeymapService } from './keymap';
+import type { OutputManager } from './outputs';
 import type { AppStore } from './store';
 
-type StoreInvoke = Pick<ControlInvokeChannels, 'cmd:doc' | 'cmd:appearance' | 'cmd:settings'>;
-type StoreSend = Pick<ControlSendChannels, 'cmd:scroll' | 'layout:result' | 'ui:editorFocus'>;
+type StoreInvoke = Pick<ControlInvokeChannels, 'cmd:doc' | 'cmd:appearance' | 'cmd:settings' | 'cmd:output' | 'cmd:keymap'>;
+type StoreSend = Pick<ControlSendChannels, 'cmd:scroll' | 'layout:result' | 'ui:editorFocus' | 'ui:keyCapture'>;
 
 export interface MainTransport {
   handle<C extends keyof StoreInvoke>(
@@ -48,4 +50,22 @@ export function bindStore(store: AppStore, t: MainTransport): () => void {
     }),
   ];
   return () => offs.forEach((off) => off());
+}
+
+/**
+ * Liga as saídas e os atalhos ao estado e aos canais (`cmd:output`, `cmd:keymap`,
+ * `ui:keyCapture`). Mudanças nas saídas, nos monitores e no mapa de atalhos republicam
+ * o `StateSnapshot`.
+ */
+export function bindStudio(store: AppStore, outputs: OutputManager, keymap: KeymapService, t: MainTransport): () => void {
+  store.setStudio({ outputs: () => outputs.outputs(), displays: () => outputs.displays() });
+  const offs: (() => void)[] = [
+    t.handle('cmd:output', (cmd) => outputs.command(cmd)),
+    t.handle('cmd:keymap', (cmd) => keymap.command(cmd)),
+    t.on('ui:keyCapture', (flag) => keymap.setCapturing(Boolean(flag))),
+  ];
+  return () => {
+    offs.forEach((off) => off());
+    store.setStudio(null);
+  };
 }

@@ -6,6 +6,9 @@
  */
 import { useControlStore, useSnapshot, type DraftState } from './hooks';
 import { Button, Input } from '../shared/ui/chiaro';
+import { Icon } from '../shared/ui/Icon';
+
+export const SHORTCUTS_INACTIVE = 'Atalhos inativos enquanto você edita. Esc para sair do editor';
 
 export interface EditorProps {
   draft: DraftState;
@@ -31,6 +34,15 @@ export function Editor({ draft }: EditorProps) {
 
   return (
     <section className="tp-editor" aria-label="Editor do roteiro">
+      {/* Fixo enquanto o editor está em foco (US-023 EC-1 e EC-4). */}
+      <p className={`tp-shortcuts-inactive${snapshot.editorFocused ? ' tp-on' : ''}`} role="status" aria-live="polite">
+        {snapshot.editorFocused && (
+          <>
+            <Icon name="keyboard" size={18} />
+            <span>{SHORTCUTS_INACTIVE}</span>
+          </>
+        )}
+      </p>
       <Input
         multiline
         rows={18}

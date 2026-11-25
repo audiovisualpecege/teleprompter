@@ -1,0 +1,32 @@
+/*
+ * Saída de TP: o palco ocupa a tela inteira, sem barras de rolagem nem cursor. O número
+ * de identificação usa os tokens da Chiaro (tema Noite); o texto usa as cores da aparência.
+ */
+body {
+  cursor: none;
+  user-select: none;
+}
+
+.tp-output-badge {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+
+.tp-output-badge span {
+  display: grid;
+  place-items: center;
+  min-width: 1.4em;
+  height: 1.4em;
+  padding: 0 0.2em;
+  border-radius: var(--radius-xl);
+  background: var(--surface-card);
+  border: 0.03em solid var(--border-brand);
+  box-shadow: var(--shadow-glow);
+  color: var(--text-primary);
+  font-family: var(--font-display);
+  font-weight: var(--weight-black);
+  line-height: 1;
+}

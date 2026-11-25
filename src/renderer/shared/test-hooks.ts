@@ -31,6 +31,8 @@ export function installTestHooks(role: 'control' | 'output'): void {
   registerProbe('theme', () => document.documentElement.dataset.theme ?? null);
   registerProbe('background', () => getComputedStyle(document.body).backgroundColor);
   registerProbe('colorScheme', () => getComputedStyle(document.body).colorScheme);
+  // Estado do bloqueio de proteção de tela, que mora no principal (devolve uma promessa).
+  registerProbe('powerBlocker', () => window.__tpTestBridge?.call('powerBlocker'));
 
   window.__tpProbe = (name?: string) => {
     if (name !== undefined) return probes.get(name)?.();

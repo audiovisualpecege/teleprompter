@@ -52,6 +52,11 @@ export interface OutputWindowOptions {
   /** Cor de fundo da aparência, para a saída nascer sem piscar. */
   backgroundColor: string;
   isMac: boolean;
+  /**
+   * Tela cheia do sistema (padrão: sim). Só os monitores virtuais do build de teste a
+   * desligam, porque a janela fica num retângulo da tela real.
+   */
+  fullscreen?: boolean;
 }
 
 export function createOutputWindow(
@@ -71,8 +76,8 @@ export function createOutputWindow(
     title: 'Teleprompter: saída',
     icon: paths.icon,
     backgroundColor: opts.backgroundColor,
-    fullscreen: !opts.isMac,
-    simpleFullscreen: opts.isMac,
+    fullscreen: (opts.fullscreen ?? true) && !opts.isMac,
+    simpleFullscreen: (opts.fullscreen ?? true) && opts.isMac,
     webPreferences: {
       preload: join(paths.mainDir, '..', 'preload', 'output.js'),
       contextIsolation: true,

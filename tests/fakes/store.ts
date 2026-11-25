@@ -20,6 +20,7 @@ import { createFakeScheduler, type FakeScheduler } from './scheduler';
 
 export interface TestStore {
   store: AppStore;
+  settings: SettingsStore;
   platform: FakePlatform;
   clock: FakeScheduler;
   userDataDir: string;
@@ -46,9 +47,10 @@ export async function createTestStore(options: TestStoreOptions = {}): Promise<T
   const userDataDir = options.userDataDir ?? mkdtempSync(join(tmpdir(), 'tp-store-'));
   const logs: TestStore['logs'] = [];
   const log = (event: string, fields?: Record<string, unknown>): void => void logs.push({ event, fields });
+  const settings = new SettingsStore({ userDataDir, log });
   const store = new AppStore({
     files: new ScriptFiles({ dialog: platform.dialog, fs: options.fs }),
-    settings: new SettingsStore({ userDataDir, log }),
+    settings,
     recovery: new RecoveryStore(userDataDir, options.fs),
     scheduler: clock,
     now: () => clock.now,
@@ -69,5 +71,5 @@ export async function createTestStore(options: TestStoreOptions = {}): Promise<T
   store.onSegment((s) => segments.push(s));
   store.onSnapshot((s) => snapshots.push(s));
   if (options.init !== false) await store.init();
-  return { store, platform, clock, userDataDir, requests, segments, snapshots, logs, respond, last: () => store.snapshot() };
+  return { store, settings, platform, clock, userDataDir, requests, segments, snapshots, logs, respond, last: () => store.snapshot() };
 }

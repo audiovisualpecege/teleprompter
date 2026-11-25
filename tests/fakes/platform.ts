@@ -15,7 +15,14 @@ export interface FakeWindow extends WindowLike {
   options: Record<string, unknown>;
   sent: { channel: string; args: unknown[] }[];
   loaded: string | null;
+  fullScreen: boolean;
+  /** Chamadas a `setFullScreen`/`setSimpleFullScreen(true)`. */
+  fullScreenCalls: number;
   emit(event: string, ...args: unknown[]): void;
+  /** Emite um evento na `webContents` (`did-finish-load`, `before-input-event`). */
+  emitWeb(event: string, ...args: unknown[]): void;
+  /** Uma tecla pelo `before-input-event`; devolve se a página foi impedida de recebê-la. */
+  key(input: { type?: string; key: string; control?: boolean; meta?: boolean; shift?: boolean; alt?: boolean; isAutoRepeat?: boolean }): boolean;
 }
 
 export interface FakePlatform extends Platform {
@@ -38,10 +45,12 @@ export function fakeDisplay(id: number, label: string, x = 0, width = 1920, heig
 
 function fakeWindow(id: number, options: Record<string, unknown>): FakeWindow {
   const listeners = new Map<string, ((...a: unknown[]) => void)[]>();
+  const webListeners = new Map<string, ((...a: unknown[]) => void)[]>();
   const on = (event: string, cb: (...a: unknown[]) => void): void => {
     listeners.set(event, [...(listeners.get(event) ?? []), cb]);
   };
   let destroyed = false;
+  let minimized = false;
   let bounds: Rect = {
     x: Number(options.x ?? 0),
     y: Number(options.y ?? 0),
@@ -53,30 +62,58 @@ function fakeWindow(id: number, options: Record<string, unknown>): FakeWindow {
     options,
     sent: [],
     loaded: null,
+    fullScreen: Boolean(options.fullscreen || options.simpleFullscreen),
+    fullScreenCalls: 0,
     webContents: {
-      send: (channel, ...args) => void win.sent.push({ channel, args }),
-      on: () => undefined,
+      id: 1000 + id,
+      send: (channel, ...args) => {
+        if (!destroyed) win.sent.push({ channel, args });
+      },
+      on: (event, cb) => void webListeners.set(event, [...(webListeners.get(event) ?? []), cb]),
     },
     loadURL: async (url) => void (win.loaded = url),
     loadFile: async (path) => void (win.loaded = path),
     show: () => undefined,
     close: () => {
+      if (destroyed) return;
+      let prevented = false;
+      win.emit('close', { preventDefault: () => void (prevented = true) });
+      if (prevented) return;
       destroyed = true;
       win.emit('closed');
     },
     destroy: () => {
+      if (destroyed) return;
       destroyed = true;
+      // Como no Electron: `destroy` não emite `close`, só `closed`.
+      win.emit('closed');
     },
     focus: () => undefined,
     isDestroyed: () => destroyed,
     getBounds: () => ({ ...bounds }),
     setBounds: (b) => void (bounds = { ...bounds, ...b }),
-    setFullScreen: () => undefined,
-    setSimpleFullScreen: () => undefined,
+    setFullScreen: (flag) => {
+      win.fullScreen = flag;
+      if (flag) win.fullScreenCalls++;
+    },
+    setSimpleFullScreen: (flag) => {
+      win.fullScreen = flag;
+      if (flag) win.fullScreenCalls++;
+    },
+    isFullScreen: () => win.fullScreen,
+    isMinimized: () => minimized,
+    restore: () => void (minimized = false),
     setBackgroundColor: (c) => void (options.backgroundColor = c),
     on,
     once: on,
     emit: (event, ...args) => (listeners.get(event) ?? []).forEach((cb) => cb(...args)),
+    emitWeb: (event, ...args) => (webListeners.get(event) ?? []).forEach((cb) => cb(...args)),
+    key(input) {
+      let prevented = false;
+      const event = { preventDefault: () => void (prevented = true) };
+      win.emitWeb('before-input-event', event, { type: 'keyDown', control: false, meta: false, shift: false, alt: false, isAutoRepeat: false, ...input });
+      return prevented;
+    },
   };
   return win;
 }

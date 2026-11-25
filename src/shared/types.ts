@@ -208,6 +208,11 @@ export interface StateSnapshot {
   outputs: OutputInfo[];
   displays: DisplayInfo[];
   editorFocused: boolean;
+  /**
+   * Mapa de atalhos atual (acréscimo à TechSpec, tarefa 5): as dicas dos botões e a tela de
+   * atalhos leem daqui, e não do padrão.
+   */
+  keymap: Keymap;
   update: { version: string; url: string } | null;
   notices: Notice[];
   /** Pergunta pendente que nasceu no principal (duplo clique, fechar, recuperação). */

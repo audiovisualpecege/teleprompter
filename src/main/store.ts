@@ -37,6 +37,13 @@ import type { RecoveryStore } from './recovery';
 import { createScrollEngine, type Scheduler, type ScrollApplyResult, type ScrollEngine } from './scroll-engine';
 import type { ScriptFiles } from './script-files';
 import type { LogFn, SettingsStore } from './settings';
+import type { DisplayInfo, OutputInfo } from '@shared/types';
+
+/** Saídas e monitores, que vêm do `OutputManager` (tarefa 5). */
+export interface StudioState {
+  outputs(): OutputInfo[];
+  displays(): DisplayInfo[];
+}
 
 export interface AppStoreOptions {
   files: ScriptFiles;
@@ -79,6 +86,7 @@ export class AppStore {
   private prompt: DocPrompt | null = null;
   private editorFocused = false;
   private voice: VoiceStatus;
+  private studio: StudioState | null = null;
 
   private revision = 0;
   private requested = new Map<number, string>();
@@ -183,9 +191,10 @@ export class AppStore {
       automation: this.engine.automation,
       speed: this.engine.speed,
       voice: { ...this.voice },
-      outputs: [],
-      displays: [],
+      outputs: this.studio?.outputs() ?? [],
+      displays: this.studio?.displays() ?? [],
       editorFocused: this.editorFocused,
+      keymap: structuredClone(this.settings.settings.keymap),
       update: null,
       notices: [...this.notices],
       prompt: this.prompt,
@@ -206,6 +215,10 @@ export class AppStore {
     if (this.engine.speed !== before.speed) void this.settings.update({ speed: this.engine.speed });
     if (this.engine.automation !== before.automation || this.engine.speed !== before.speed) this.publish();
     return r;
+  }
+
+  get isEditorFocused(): boolean {
+    return this.editorFocused;
   }
 
   setEditorFocused(focused: boolean): void {
@@ -330,6 +343,28 @@ export class AppStore {
     this.prompt = { kind: 'unsaved', op: 'close', path: null };
     this.publish();
     return false;
+  }
+
+  /** Liga as saídas e os monitores ao estado publicado. */
+  setStudio(studio: StudioState | null): void {
+    this.studio = studio;
+    this.publish();
+  }
+
+  /** Republica o estado (saídas, monitores ou atalhos mudaram fora do `AppStore`). */
+  refresh(): void {
+    this.publish();
+  }
+
+  /** Aviso vindo de outra peça (saída caída); o mesmo `id` substitui o anterior. */
+  addNotice(id: string, kind: NoticeKind, message: string): void {
+    this.notify(kind, message, id);
+    this.publish();
+  }
+
+  removeNotice(id: string): void {
+    if (!this.notices.some((n) => n.id === id)) return;
+    this.dismissNotice(id);
   }
 
   dismissNotice(id: string): void {

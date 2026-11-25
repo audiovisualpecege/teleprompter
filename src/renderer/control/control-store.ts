@@ -9,7 +9,7 @@
  * - `layout`: o último `LayoutResult` produzido aqui pelo `LayoutService`, que é o mesmo
  *   que o principal repassa às saídas.
  */
-import { DEFAULT_APPEARANCE } from '@shared/defaults';
+import { DEFAULT_APPEARANCE, defaultKeymap } from '@shared/defaults';
 import type { ControlBridge } from '@shared/ipc';
 import type { MotionSegment } from '@shared/motion';
 import type { LayoutResult, StateSnapshot } from '@shared/types';
@@ -39,6 +39,7 @@ export function emptySnapshot(): StateSnapshot {
     outputs: [],
     displays: [],
     editorFocused: false,
+    keymap: defaultKeymap(),
     update: null,
     notices: [],
     prompt: null,
@@ -78,6 +79,12 @@ export function createControlStore(options: ControlStoreOptions): ControlStore {
       bridge.on('motion:segment', (s) => {
         segment = s;
         segmentListeners.forEach((cb) => cb());
+      }),
+      // Esc com o editor em foco, capturado pelo principal: os atalhos voltam a valer.
+      bridge.on('ui:blurEditor', () => {
+        if (typeof document === 'undefined') return;
+        const el = document.activeElement as HTMLElement | null;
+        if (el && el.tagName === 'TEXTAREA') el.blur();
       }),
     );
     if (options.layoutService) {

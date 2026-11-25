@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { expect, test } from '@playwright/test';
-import { launchApp, ROOT } from './app';
+import { closeApp, launchApp, ROOT } from './app';
 
 const version = (JSON.parse(readFileSync(join(ROOT, 'package.json'), 'utf8')) as { version: string }).version;
 
@@ -57,6 +57,6 @@ test('esqueleto: abre a tela de controle no tema Noite com a versão no rodapé'
     const theme = await app.evaluate(({ nativeTheme }) => nativeTheme.themeSource);
     expect(theme).toBe('dark');
   } finally {
-    await app.close();
+    await closeApp(app);
   }
 });

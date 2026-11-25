@@ -14,7 +14,9 @@ import { Editor } from './Editor';
 import { FileBar } from './FileBar';
 import { ControlStoreContext, useDraft } from './hooks';
 import { Notices, PromptDialogs } from './Notices';
+import { OutputsPanel } from './OutputsPanel';
 import { Preview } from './Preview';
+import { ShortcutsPanel } from './ShortcutsPanel';
 
 export function VersionTag() {
   // A versão vem só do package.json, pelo build; nunca é digitada aqui.
@@ -31,13 +33,24 @@ const TABS: { value: TabId; label: string }[] = [
   { value: 'sobre', label: 'Sobre' },
 ];
 
-/** Espaço das abas de estúdio, preenchido pelas tarefas de saídas, voz, atalhos e entrega. */
-const STUDIO_TEXT: Record<Exclude<TabId, 'aparencia'>, string> = {
-  saidas: 'Aqui você abre uma saída de TP em cada monitor e escolhe as inversões.',
+/** Espaço das abas de estúdio que as tarefas da voz e da entrega preenchem. */
+const STUDIO_TEXT: Record<'voz' | 'sobre', string> = {
   voz: 'Aqui você escolhe o microfone e o jeito como a voz acompanha a leitura.',
-  atalhos: 'Aqui você confere e troca os atalhos de teclado.',
   sobre: 'Versão do programa e pasta de registros.',
 };
+
+function TabPanel({ tab }: { tab: TabId }) {
+  switch (tab) {
+    case 'aparencia':
+      return <AppearancePanel />;
+    case 'saidas':
+      return <OutputsPanel />;
+    case 'atalhos':
+      return <ShortcutsPanel />;
+    default:
+      return <p className="tp-muted">{STUDIO_TEXT[tab]}</p>;
+  }
+}
 
 function ControlScreen() {
   const draft = useDraft();
@@ -52,7 +65,7 @@ function ControlScreen() {
           <section className="tp-tabs" aria-label="Aparência e estúdio">
             <Tabs items={TABS} value={tab} onChange={(v) => setTab(v as TabId)} />
             <div className="tp-tab-panel" role="tabpanel" data-tab={tab}>
-              {tab === 'aparencia' ? <AppearancePanel /> : <p className="tp-muted">{STUDIO_TEXT[tab]}</p>}
+              <TabPanel tab={tab} />
             </div>
           </section>
         </div>

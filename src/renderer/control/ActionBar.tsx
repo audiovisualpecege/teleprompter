@@ -4,32 +4,14 @@
  * mostra o atalho na dica. Sem texto confirmado, Iniciar e Voz ficam desabilitados.
  */
 import { useEffect, useRef, useState } from 'react';
-import { defaultKeymap, SPEED_MAX, SPEED_MIN, SPEED_STEP } from '@shared/defaults';
+import { SPEED_MAX, SPEED_MIN, SPEED_STEP } from '@shared/defaults';
 import { formatSpeed } from '@shared/speed';
-import type { ActionId, KeyCombo, ManualScrollCommand, ScrollDir, VoiceState } from '@shared/types';
+import type { Keymap, ManualScrollCommand, ScrollDir, VoiceState } from '@shared/types';
 import { Button, Tooltip } from '../shared/ui/chiaro';
 import { useControlStore, useSnapshot } from './hooks';
+import { shortcutHint } from './shortcuts';
 
-const KEY_NAMES: Record<string, string> = {
-  ' ': 'Espaço',
-  ArrowDown: 'Seta para baixo',
-  ArrowUp: 'Seta para cima',
-  PageDown: 'Page Down',
-  PageUp: 'Page Up',
-  Home: 'Home',
-  End: 'End',
-};
-
-export function comboLabel(c: KeyCombo): string {
-  const key = KEY_NAMES[c.key] ?? (c.key.length === 1 ? c.key.toUpperCase() : c.key);
-  return [c.ctrlOrCmd && 'Ctrl', c.alt && 'Alt', c.shift && 'Shift', key].filter(Boolean).join('+');
-}
-
-export function shortcutHint(action: ActionId, keymap = defaultKeymap()): string {
-  const combos = keymap[action] ?? [];
-  if (combos.length === 0) return 'Sem atalho';
-  return combos.map(comboLabel).join(' ou ');
-}
+export { comboLabel, shortcutHint } from './shortcuts';
 
 const VOICE_LABEL: Record<VoiceState, string> = {
   off: 'Desligada',
@@ -60,7 +42,7 @@ export function useCompact(): boolean {
 /** Segurar Subir ou Descer rola sem parar; um clique curto anda uma linha. */
 const HOLD_AFTER_MS = 350;
 
-function StepButton({ dir, label, icon, size }: { dir: ScrollDir; label: string; icon: string; size: 'md' | 'lg' }) {
+function StepButton({ dir, label, icon, size, keymap }: { dir: ScrollDir; label: string; icon: string; size: 'md' | 'lg'; keymap: Keymap }) {
   const store = useControlStore();
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const holding = useRef(false);
@@ -78,7 +60,7 @@ function StepButton({ dir, label, icon, size }: { dir: ScrollDir; label: string;
     if (holding.current) send({ type: 'holdEnd' });
   };
   return (
-    <Tooltip label={`${label}: ${shortcutHint(dir === 1 ? 'down' : 'up')}`}>
+    <Tooltip label={`${label}: ${shortcutHint(dir === 1 ? 'down' : 'up', keymap)}`}>
       <Button
         variant="secondary"
         size={size}
@@ -104,6 +86,7 @@ function StepButton({ dir, label, icon, size }: { dir: ScrollDir; label: string;
 export function ActionBar() {
   const store = useControlStore();
   const snapshot = useSnapshot();
+  const keymap = snapshot.keymap;
   const size = useCompact() ? 'md' : 'lg';
   const hasText = snapshot.doc.confirmedText !== '';
   const auto = snapshot.automation === 'auto';
@@ -116,7 +99,7 @@ export function ActionBar() {
 
   return (
     <div className="tp-actionbar" role="toolbar" aria-label="Ações de gravação">
-      <Tooltip label={`${auto ? 'Pausar' : 'Iniciar'}: ${shortcutHint('autoToggle')}`}>
+      <Tooltip label={`${auto ? 'Pausar' : 'Iniciar'}: ${shortcutHint('autoToggle', keymap)}`}>
         <Button
           size={size}
           iconLeft={auto ? 'pause' : 'play'}
@@ -128,7 +111,7 @@ export function ActionBar() {
         </Button>
       </Tooltip>
       <div className="tp-speed" role="group" aria-label="Velocidade">
-        <Tooltip label={`Mais devagar: ${shortcutHint('slower')}`}>
+        <Tooltip label={`Mais devagar: ${shortcutHint('slower', keymap)}`}>
           <Button variant="secondary" size={size} aria-label="Mais devagar" disabled={snapshot.speed <= SPEED_MIN} onClick={setSpeed(-SPEED_STEP)}>
             -
           </Button>
@@ -136,20 +119,20 @@ export function ActionBar() {
         <output className="tp-speed-value" aria-label="Velocidade atual" data-testid="speed">
           {formatSpeed(snapshot.speed)}
         </output>
-        <Tooltip label={`Mais rápido: ${shortcutHint('faster')}`}>
+        <Tooltip label={`Mais rápido: ${shortcutHint('faster', keymap)}`}>
           <Button variant="secondary" size={size} aria-label="Mais rápido" disabled={snapshot.speed >= SPEED_MAX} onClick={setSpeed(SPEED_STEP)}>
             +
           </Button>
         </Tooltip>
       </div>
-      <Tooltip label={`Voltar ao início: ${shortcutHint('toStart')}`}>
+      <Tooltip label={`Voltar ao início: ${shortcutHint('toStart', keymap)}`}>
         <Button variant="secondary" size={size} iconLeft="rewind-back" onClick={() => send({ type: 'toStart' })}>
           Voltar ao início
         </Button>
       </Tooltip>
-      <StepButton dir={-1} label="Subir" icon="alt-arrow-up" size={size} />
-      <StepButton dir={1} label="Descer" icon="alt-arrow-down" size={size} />
-      <Tooltip label={`Voz: ${shortcutHint('voiceToggle')}`}>
+      <StepButton dir={-1} label="Subir" icon="alt-arrow-up" size={size} keymap={keymap} />
+      <StepButton dir={1} label="Descer" icon="alt-arrow-down" size={size} keymap={keymap} />
+      <Tooltip label={`Voz: ${shortcutHint('voiceToggle', keymap)}`}>
         <Button variant={voiceOn ? 'primary' : 'secondary'} size={size} iconLeft="microphone-2" disabled={!hasText} onClick={toggleVoice}>
           Voz
         </Button>

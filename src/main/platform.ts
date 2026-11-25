@@ -35,6 +35,7 @@ export interface ScreenAdapter {
 export interface WindowLike {
   readonly id: number;
   readonly webContents: {
+    readonly id: number;
     send(channel: string, ...args: unknown[]): void;
     on(event: string, cb: (...args: unknown[]) => void): unknown;
   };
@@ -48,6 +49,9 @@ export interface WindowLike {
   getBounds(): Rect;
   setBounds(bounds: Partial<Rect>): void;
   setFullScreen(flag: boolean): void;
+  isFullScreen(): boolean;
+  isMinimized(): boolean;
+  restore(): void;
   setSimpleFullScreen(flag: boolean): void;
   setBackgroundColor(color: string): void;
   on(event: string, cb: (...args: unknown[]) => void): unknown;

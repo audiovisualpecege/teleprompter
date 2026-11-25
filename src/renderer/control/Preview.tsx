@@ -40,7 +40,7 @@ export function Preview() {
   const layout = useLayout();
   const segment = useSegment();
   const boxRef = useRef<HTMLDivElement | null>(null);
-  const drawn = useRef(0);
+  const drawn = useRef({ y: 0, t: 0 });
 
   // Roda do mouse: ouvinte nativo não passivo, para a página não rolar junto.
   useEffect(() => {
@@ -60,7 +60,9 @@ export function Preview() {
 
   // Ganchos de teste: posição desenhada e texto das linhas da prévia.
   useEffect(() => {
-    registerProbe('position', () => drawn.current);
+    registerProbe('position', () => drawn.current.y);
+    registerProbe('sample', () => ({ ...drawn.current }));
+    registerProbe('lineYs', () => store.getLayout()?.lines.map((l) => l.y) ?? []);
     registerProbe('lines', () => store.getLayout()?.lines.map((l) => l.text) ?? []);
     registerProbe('layoutRevision', () => store.getLayout()?.revision ?? null);
     registerProbe('appearance', () => store.getLayout()?.appearance ?? null);
@@ -79,7 +81,7 @@ export function Preview() {
           now={store.clock.now}
           guides
           onDraw={(y) => {
-            drawn.current = y;
+            drawn.current = { y, t: store.clock.now() };
           }}
           className="tp-preview-stage"
           style={{ position: 'absolute', inset: 0 }}

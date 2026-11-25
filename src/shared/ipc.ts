@@ -124,6 +124,11 @@ export interface ControlSendChannels {
   'asr:lag': number;
   'asr:ready': void;
   'ui:editorFocus': boolean;
+  /**
+   * A tela de atalhos está gravando uma combinação (acréscimo à TechSpec, tarefa 5): as
+   * teclas vão para a tela sem virar ação.
+   */
+  'ui:keyCapture': boolean;
   'layout:result': LayoutResult;
 }
 
@@ -132,11 +137,18 @@ export interface ControlEvents {
   'layout:request': LayoutRequest;
   'state:snapshot': StateSnapshot;
   'motion:segment': MotionSegment;
+  /** Esc com o editor em foco (capturado pelo principal): a tela tira o foco do editor. */
+  'ui:blurEditor': null;
 }
 
 /** Saída → principal, com resposta. */
 export interface OutputInvokeChannels {
   'clock:ping': { req: number; res: ClockPong };
+}
+
+/** Saída → principal, sem resposta (acréscimo à TechSpec, tarefa 5): quadros longos por minuto. */
+export interface OutputSendChannels {
+  'render:longFrame': { count: number; maxMs: number };
 }
 
 /** Principal → saída. */
@@ -150,6 +162,7 @@ export type ControlSendChannel = keyof ControlSendChannels;
 export type ControlEventChannel = keyof ControlEvents;
 export type OutputInvokeChannel = keyof OutputInvokeChannels;
 export type OutputEventChannel = keyof OutputEvents;
+export type OutputSendChannel = keyof OutputSendChannels;
 
 /** Listas usadas pelo preload para só deixar passar canais conhecidos. */
 export const CONTROL_INVOKE_CHANNELS = [
@@ -170,6 +183,7 @@ export const CONTROL_SEND_CHANNELS = [
   'asr:lag',
   'asr:ready',
   'ui:editorFocus',
+  'ui:keyCapture',
   'layout:result',
 ] as const satisfies readonly ControlSendChannel[];
 
@@ -177,9 +191,12 @@ export const CONTROL_EVENT_CHANNELS = [
   'layout:request',
   'state:snapshot',
   'motion:segment',
+  'ui:blurEditor',
 ] as const satisfies readonly ControlEventChannel[];
 
 export const OUTPUT_INVOKE_CHANNELS = ['clock:ping'] as const satisfies readonly OutputInvokeChannel[];
+
+export const OUTPUT_SEND_CHANNELS = ['render:longFrame'] as const satisfies readonly OutputSendChannel[];
 
 export const OUTPUT_EVENT_CHANNELS = [
   'state:output',
@@ -206,6 +223,7 @@ export interface OutputBridge {
     channel: C,
     payload: OutputInvokeChannels[C]['req'],
   ): Promise<OutputInvokeChannels[C]['res']>;
+  send<C extends OutputSendChannel>(channel: C, payload: OutputSendChannels[C]): void;
   on<C extends OutputEventChannel>(channel: C, cb: (payload: OutputEvents[C]) => void): Unsubscribe;
 }
 
