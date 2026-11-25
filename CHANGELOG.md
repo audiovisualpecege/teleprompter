@@ -3,7 +3,7 @@
 Todas as versões do Teleprompter, com o que muda para quem usa.
 A versão segue o padrão MAJOR.MINOR.PATCH e mora só no `version` do `package.json`.
 
-## 1.0.0 (2026-11-24)
+## 1.0.0 (2026-11-25)
 
 Primeira versão do Teleprompter da Chiaro Filmes, para Windows e Mac.
 
