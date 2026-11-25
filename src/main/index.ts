@@ -3,7 +3,8 @@
  * Noite, o relógio comum, o `AppStore` (roteiro, rolagem, ajustes, recuperação), a
  * abertura por arquivo, a janela de controle, as saídas de TP (com monitores, energia e
  * queda e volta), os atalhos de todas as janelas e a voz (`VoiceController`, com a
- * captura e o motor na janela de controle e o Parakeet num `utilityProcess`).
+ * captura e o motor na janela de controle e o Parakeet num `utilityProcess`), o aviso
+ * de versão nova (`UpdateChecker`, a única chamada de rede) e o voltar ao padrão.
  */
 import { join } from 'node:path';
 import * as electron from 'electron';
@@ -11,7 +12,7 @@ import { app, ipcMain, MessageChannelMain, Menu, nativeTheme, protocol, systemPr
 import { PARAKEET_EXIT_MESSAGE, PARAKEET_PORT_CHANNEL, type ClockPong, type VoiceRunCommand } from '@shared/ipc';
 import { processNow } from '@shared/motion';
 import icon from '../../build/icons/256x256.png?asset';
-import { bindStore, bindStudio, bindVoice, type MainTransport } from './ipc-main';
+import { bindStore, bindStudio, bindUpdate, bindVoice, type MainTransport } from './ipc-main';
 import { createFakeScreen, DisplayRegistry, parseFakeDisplays, type FakeDisplaySpec } from './displays';
 import { KeymapService } from './keymap';
 import { OutputManager, type OutputPlacement } from './outputs';
@@ -29,6 +30,7 @@ import { launchParakeet, type ParakeetProcess } from './parakeet-process';
 import { VoiceController, type MicAccess } from './voice-controller';
 import type { PlatformDisplay, ScreenAdapter, WindowLike } from './platform';
 import { installPermissions } from './permissions';
+import { RELEASES_URL, UpdateChecker } from './updates';
 
 // Só no build de teste: cada teste de ponta a ponta usa a sua própria pasta de usuário.
 if (__TP_TEST__ && process.env.TP_USER_DATA) app.setPath('userData', process.env.TP_USER_DATA);
@@ -217,6 +219,38 @@ if (fileOpening.primary) {
       },
     });
     bindVoice(voice, transport);
+
+    // Versão nova: uma consulta por abertura, depois de os ajustes serem lidos. Só o build
+    // de teste aponta a consulta para um servidor local.
+    let updateUrl = RELEASES_URL;
+    if (__TP_TEST__ && process.env.TP_UPDATE_URL) updateUrl = process.env.TP_UPDATE_URL;
+    const updates = new UpdateChecker({
+      net: platform.net,
+      shell: platform.shell,
+      currentVersion: app.getVersion(),
+      platform: process.platform,
+      arch: process.arch,
+      downloadsDir: app.getPath('downloads'),
+      log: logEvent,
+      url: updateUrl,
+      onChange: () => store.refresh(),
+    });
+    const logsDir = join(userData, 'logs');
+    bindUpdate(
+      store,
+      updates,
+      async () => {
+        const failure = await platform.shell.openPath(logsDir);
+        if (failure) logEvent('logs.open', { error: failure });
+        return logsDir;
+      },
+      transport,
+    );
+    // "Voltar ao padrão": as saídas abertas perdem a inversão e a voz ligada volta ao Vosk.
+    store.onSettingsReset((previous) => {
+      studio.resetInversions();
+      voice.settingsReset(previous);
+    });
     // O Parakeet abre num utilityProcess quando a janela de controle pede; a porta do
     // `asr:pcm` vai direto para a janela, sem passar pelo principal.
     ipcMain.on('voice:wantParakeet', () => {
@@ -318,6 +352,7 @@ if (fileOpening.primary) {
     const started = store.init();
     // As saídas guardadas reabrem (sem número) depois de os ajustes serem lidos.
     void started.then(() => studio.restore());
+    void started.then(() => updates.check());
     // O primeiro estado e o arquivo do duplo clique só depois de a tela carregar.
     controlWindow.webContents.on('did-finish-load', () => {
       // A janela recarregada perdeu a captura e o motor: a voz desliga.

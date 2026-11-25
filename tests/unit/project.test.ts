@@ -29,16 +29,25 @@ describe('projeto: versão, ícone e instaladores', () => {
     expect(JSON.stringify(cfg)).not.toMatch(/icone-chiaro|logos\//);
   });
 
-  it('release: workflow em tag v*, Windows e Mac, publicando em audiovisualpecege/teleprompter', () => {
+  it('release: workflow em tag v*, Windows e Mac, testes de instalação e publicação só na tag', () => {
     const wf = parse(read('.github/workflows/release.yml'));
     expect(wf.on.push.tags).toEqual(['v*']);
     expect(wf.permissions.contents).toBe('write');
-    const oses = wf.jobs.release.strategy.matrix.include.map((m: { os: string }) => m.os);
-    expect(oses).toEqual(['windows-latest', 'macos-latest']);
-    const steps = JSON.stringify(wf.jobs.release.steps);
+    const oses = wf.jobs.instaladores.strategy.matrix.include.map((m: { os: string }) => m.os);
+    expect(oses).toEqual(['windows-latest', 'macos-15-intel', 'macos-latest']);
+    const steps = JSON.stringify(wf.jobs.instaladores.steps);
     expect(steps).toContain('npm ci');
+    expect(steps).toContain('npm test');
     expect(steps).toContain('npm run build');
-    expect(steps).toContain('GH_TOKEN');
+    // Os instaladores nunca publicam sozinhos: só o job "publicar", na tag e com tudo verde.
+    for (const m of wf.jobs.instaladores.strategy.matrix.include) expect(m.dist).toContain('--publish never');
+    expect(wf.jobs.publicar.if).toBe("startsWith(github.ref, 'refs/tags/')");
+    expect(wf.jobs.publicar.needs).toEqual(['instaladores', 'instalar-windows', 'instalar-mac']);
+    const publish = JSON.stringify(wf.jobs.publicar.steps);
+    expect(publish).toContain('GH_TOKEN');
+    for (const suffix of ['win-x64.exe', 'mac-x64.dmg', 'mac-arm64.dmg']) expect(publish).toContain(`Teleprompter-$VERSAO-${suffix}`);
+    expect(JSON.stringify(wf.jobs['instalar-windows'].steps)).toContain('tests/instalacao/windows.spec.ts');
+    expect(JSON.stringify(wf.jobs['instalar-mac'].steps)).toContain('tests/instalacao/mac.spec.ts');
     const builder = parse(read('electron-builder.yml'));
     expect(`${builder.publish.owner}/${builder.publish.repo}`).toBe('audiovisualpecege/teleprompter');
   });

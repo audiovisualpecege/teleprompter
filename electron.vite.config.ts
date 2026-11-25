@@ -89,6 +89,33 @@ export function chiaroOfflineIcon(): Plugin {
   };
 }
 
+/**
+ * Logos da Chiaro (assinatura da tela Sobre). O `Logo` do design system monta o caminho
+ * `base + 'assets/logos/<nome>.png'` na hora, então o Vite não acharia os PNG sozinho.
+ * Este plugin copia só os logos brancos para `renderer/chiaro/assets/logos/` no build e
+ * os serve no mesmo caminho em desenvolvimento, sem editar `design-system/chiaro/`.
+ */
+const LOGOS_DIR = resolve(root, 'design-system/chiaro/assets/logos');
+export const CHIARO_LOGOS = ['chiaro-filmes-horizontal-white.png'];
+export function chiaroLogos(): Plugin {
+  return {
+    name: 'tp-chiaro-logos',
+    generateBundle() {
+      for (const file of CHIARO_LOGOS) {
+        this.emitFile({ type: 'asset', fileName: `chiaro/assets/logos/${file}`, source: readFileSync(resolve(LOGOS_DIR, file)) });
+      }
+    },
+    configureServer(server) {
+      server.middlewares.use((req, res, next) => {
+        const m = /^\/chiaro\/assets\/logos\/([\w.-]+\.png)$/.exec(req.url ?? '');
+        if (!m || !CHIARO_LOGOS.includes(m[1])) return next();
+        res.setHeader('Content-Type', 'image/png');
+        res.end(readFileSync(resolve(LOGOS_DIR, m[1])));
+      });
+    },
+  };
+}
+
 export const aliases = {
   '@chiaro': resolve(root, 'design-system/chiaro'),
   '@shared': resolve(root, 'src/shared'),
@@ -134,7 +161,7 @@ export default defineConfig(({ mode }) => {
       root: resolve(root, 'src/renderer'),
       define,
       resolve: { alias: aliases },
-      plugins: [chiaroOfflineIcon(), react()],
+      plugins: [chiaroOfflineIcon(), chiaroLogos(), react()],
       worker: { format: 'iife', plugins: () => [voskWorkerCode()] },
       server: { fs: { allow: [root] } },
       build: {

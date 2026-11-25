@@ -3,11 +3,13 @@
  * - no alto, a prévia sincronizada e, logo abaixo, a barra de ações de gravação;
  * - abaixo delas, as abas de aparência e de estúdio (saídas, voz, atalhos, sobre);
  * - numa coluna à direita, o editor com Confirmar e Descartar;
- * - no topo, o nome do arquivo e as ações de arquivo; a versão fica fixa no rodapé.
+ * - no topo, o nome do arquivo e as ações de arquivo; a versão fica fixa no rodapé;
+ * - o aviso de versão nova, quando há, numa faixa fina sob a barra do arquivo, sem tomar o foco.
  */
 import { useMemo, useState } from 'react';
 import { Tabs } from '../shared/ui/chiaro';
 import { ActionBar } from './ActionBar';
+import { AboutPanel } from './AboutPanel';
 import { AppearancePanel } from './AppearancePanel';
 import { createControlStore, type ControlStore } from './control-store';
 import { Editor } from './Editor';
@@ -17,6 +19,7 @@ import { Notices, PromptDialogs } from './Notices';
 import { OutputsPanel } from './OutputsPanel';
 import { Preview } from './Preview';
 import { ShortcutsPanel } from './ShortcutsPanel';
+import { UpdateNotice } from './UpdateNotice';
 import { VoicePanel } from './VoicePanel';
 import { VoiceAlert } from './VoiceStatus';
 
@@ -35,11 +38,6 @@ const TABS: { value: TabId; label: string }[] = [
   { value: 'sobre', label: 'Sobre' },
 ];
 
-/** Espaço da aba que a tarefa da entrega preenche. */
-const STUDIO_TEXT: Record<'sobre', string> = {
-  sobre: 'Versão do programa e pasta de registros.',
-};
-
 function TabPanel({ tab }: { tab: TabId }) {
   switch (tab) {
     case 'aparencia':
@@ -50,8 +48,8 @@ function TabPanel({ tab }: { tab: TabId }) {
       return <ShortcutsPanel />;
     case 'voz':
       return <VoicePanel />;
-    default:
-      return <p className="tp-muted">{STUDIO_TEXT[tab]}</p>;
+    case 'sobre':
+      return <AboutPanel />;
   }
 }
 
@@ -61,6 +59,7 @@ function ControlScreen() {
   return (
     <div className="tp-shell">
       <FileBar draft={draft} />
+      <UpdateNotice />
       <main className="tp-main">
         <div className="tp-stage-column">
           <Preview />

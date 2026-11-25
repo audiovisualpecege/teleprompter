@@ -121,7 +121,11 @@ export type KeymapCommand =
 export type KeymapFailure = { conflictWith: ActionId } | 'reserved';
 
 export type SettingsCommand = { op: 'resetAll' };
-export type UpdateCommand = { op: 'download' };
+/**
+ * `download` baixa e abre o instalador. Acréscimo à TechSpec (tarefa 7): `dismiss` é o
+ * "Fechar" do aviso, guardado no principal até o fim da sessão (UT-222).
+ */
+export type UpdateCommand = { op: 'download' } | { op: 'dismiss' };
 export type UpdateFailure = 'network' | 'no-asset';
 
 export interface LayoutRequest {
@@ -157,6 +161,11 @@ export interface ControlInvokeChannels {
   'cmd:keymap': { req: KeymapCommand; res: Result<Keymap, KeymapFailure> };
   'cmd:settings': { req: SettingsCommand; res: Settings };
   'cmd:update': { req: UpdateCommand; res: Result<void, UpdateFailure> };
+  /**
+   * Acréscimo à TechSpec (tarefa 7): o botão "Abrir pasta de registros" da tela Sobre abre
+   * `userData/logs` no sistema; a resposta é o caminho aberto.
+   */
+  'cmd:openLogs': { req: null; res: string };
   'clock:ping': { req: number; res: ClockPong };
 }
 
@@ -221,6 +230,7 @@ export const CONTROL_INVOKE_CHANNELS = [
   'cmd:keymap',
   'cmd:settings',
   'cmd:update',
+  'cmd:openLogs',
   'clock:ping',
 ] as const satisfies readonly ControlInvokeChannel[];
 

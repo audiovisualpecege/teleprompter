@@ -13,11 +13,12 @@ import type { LayoutResult } from '@shared/types';
 import type { KeymapService } from './keymap';
 import type { OutputManager } from './outputs';
 import type { AppStore } from './store';
+import type { UpdateChecker } from './updates';
 import type { VoiceController } from './voice-controller';
 
 type StoreInvoke = Pick<
   ControlInvokeChannels,
-  'cmd:doc' | 'cmd:appearance' | 'cmd:settings' | 'cmd:output' | 'cmd:keymap' | 'cmd:voice'
+  'cmd:doc' | 'cmd:appearance' | 'cmd:settings' | 'cmd:output' | 'cmd:keymap' | 'cmd:voice' | 'cmd:update' | 'cmd:openLogs'
 >;
 type StoreSend = Pick<
   ControlSendChannels,
@@ -82,6 +83,34 @@ export function bindStudio(store: AppStore, outputs: OutputManager, keymap: Keym
   return () => {
     offs.forEach((off) => off());
     store.setStudio(null);
+  };
+}
+
+/**
+ * Liga o aviso de versão nova (`cmd:update`) e o botão "Abrir pasta de registros"
+ * (`cmd:openLogs`) da tela Sobre. O aviso entra no `StateSnapshot.update`.
+ */
+export function bindUpdate(
+  store: AppStore,
+  updates: UpdateChecker,
+  openLogs: () => Promise<string> | string,
+  t: MainTransport,
+): () => void {
+  store.setUpdate(() => updates.view);
+  const offs: (() => void)[] = [
+    t.handle('cmd:update', async (cmd) => {
+      if (cmd?.op === 'dismiss') {
+        updates.dismiss();
+        return { ok: true, value: undefined };
+      }
+      if (cmd?.op === 'download') return updates.download();
+      return { ok: false, error: 'no-asset' };
+    }),
+    t.handle('cmd:openLogs', () => openLogs()),
+  ];
+  return () => {
+    offs.forEach((off) => off());
+    store.setUpdate(null);
   };
 }
 

@@ -251,6 +251,20 @@ export class VoiceController {
     return this.status;
   }
 
+  /**
+   * Depois de "Voltar ao padrão": o modo já vem dos ajustes; se a voz está ligada com
+   * outro motor, ela recomeça no motor padrão.
+   */
+  settingsReset(previous: { voiceEngine: EngineId }): void {
+    if (this.state !== 'off' && previous.voiceEngine !== this.resolvedEngine()) {
+      this.restartAttempts = 0;
+      this.o.store.removeNotice(VOICE_FAULT_NOTICE);
+      this.fault = null;
+      this.startSession('preparing');
+    }
+    this.o.store.refresh();
+  }
+
   /* ---------- Sessões ---------- */
 
   private resolvedEngine(): EngineId {

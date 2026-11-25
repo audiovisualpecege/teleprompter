@@ -20,6 +20,7 @@ import { Dialog as ChiaroDialog } from '@chiaro/components/surfaces/Dialog.jsx';
 import { Toast as ChiaroToast } from '@chiaro/components/surfaces/Toast.jsx';
 import { Tooltip as ChiaroTooltip } from '@chiaro/components/surfaces/Tooltip.jsx';
 import { SectionTitle as ChiaroSectionTitle } from '@chiaro/components/brand/SectionTitle.jsx';
+import { Logo as ChiaroLogo } from '@chiaro/components/brand/Logo.jsx';
 
 type Native<T> = Omit<T, 'style' | 'children' | 'onChange'>;
 
@@ -141,6 +142,23 @@ export interface SectionTitleProps {
   style?: CSSProperties;
 }
 
+export interface LogoProps {
+  variant?: 'box' | 'boxHorizontal' | 'chiaro' | 'filmes' | 'filmesHorizontal' | 'icon';
+  /** Versão branca, para o tema Noite. */
+  inverse?: boolean;
+  height?: number;
+  /** Caminho até a raiz do design system (`assets/logos/...`). */
+  base?: string;
+  style?: CSSProperties;
+}
+
+/**
+ * Onde as janelas acham os PNG dos logos da Chiaro: o build copia
+ * `design-system/chiaro/assets/logos/` para `renderer/chiaro/assets/logos/` (plugin
+ * `chiaroLogos` do `electron.vite.config.ts`), ao lado das páginas `control/` e `output/`.
+ */
+export const CHIARO_LOGO_BASE = '../chiaro/';
+
 export const Button = ChiaroButton as unknown as ComponentType<ButtonProps>;
 export const IconButton = ChiaroIconButton as unknown as ComponentType<IconButtonProps>;
 export const Input = ChiaroInput as unknown as ComponentType<InputProps>;
@@ -156,3 +174,4 @@ export const Tooltip = ChiaroTooltip as unknown as ComponentType<TooltipProps>;
 export const Badge = ChiaroBadge as unknown as ComponentType<BadgeProps>;
 export const Tag = ChiaroTag as unknown as ComponentType<TagProps>;
 export const SectionTitle = ChiaroSectionTitle as unknown as ComponentType<SectionTitleProps>;
+export const Logo = ChiaroLogo as unknown as ComponentType<LogoProps>;

@@ -30,6 +30,7 @@ import {
   type ScrollCommand,
   type Settings,
   type StateSnapshot,
+  type UpdateView,
   type VoiceSetup,
   type VoiceStatus,
 } from '@shared/types';
@@ -95,6 +96,8 @@ export class AppStore {
   private voice: VoiceRuntimeState = { state: 'off', fault: null, lagMs: null };
   private voiceSetup: Omit<VoiceSetup, 'micDeviceId' | 'micLabel'> = { engines: ['vosk'], parakeetUnavailable: null };
   private studio: StudioState | null = null;
+  private updateView: (() => UpdateView | null) | null = null;
+  private readonly resetListeners = new Set<(previous: Settings) => void>();
 
   private revision = 0;
   private requested = new Map<number, string>();
@@ -246,7 +249,7 @@ export class AppStore {
       displays: this.studio?.displays() ?? [],
       editorFocused: this.editorFocused,
       keymap: structuredClone(this.settings.settings.keymap),
-      update: null,
+      update: this.updateView?.() ?? null,
       notices: [...this.notices],
       prompt: this.prompt,
     };
@@ -340,8 +343,11 @@ export class AppStore {
 
   async settingsCommand(cmd: SettingsCommand): Promise<Settings> {
     if (cmd.op === 'resetAll') {
+      const previous = structuredClone(this.settings.settings);
       const s = await this.settings.resetAll();
       this.engine.apply({ type: 'setSpeed', speed: s.speed }, this.now());
+      // As peças que guardam estado próprio (saídas abertas, voz ligada) aplicam o padrão.
+      this.resetListeners.forEach((cb) => cb(previous));
       this.publish();
       return s;
     }
@@ -409,6 +415,18 @@ export class AppStore {
   setStudio(studio: StudioState | null): void {
     this.studio = studio;
     this.publish();
+  }
+
+  /** Liga o aviso de versão nova (`UpdateChecker.view`) ao estado publicado. */
+  setUpdate(view: (() => UpdateView | null) | null): void {
+    this.updateView = view;
+    this.publish();
+  }
+
+  /** Avisa, depois de "Voltar ao padrão", com os ajustes de antes. */
+  onSettingsReset(cb: (previous: Settings) => void): () => void {
+    this.resetListeners.add(cb);
+    return () => this.resetListeners.delete(cb);
   }
 
   /** Republica o estado (saídas, monitores ou atalhos mudaram fora do `AppStore`). */

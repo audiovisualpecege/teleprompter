@@ -1,5 +1,10 @@
-# Publica os instaladores nas Releases de github.com/audiovisualpecege/teleprompter
-# quando uma tag de versão (v1.2.3) é enviada. A tag precisa ser igual ao version do package.json.
+# Instaladores do Teleprompter (ADR-009) e Release em github.com/audiovisualpecege/teleprompter.
+#
+# - Em todo envio de tag v1.2.3 (igual ao version do package.json) e sob demanda: testes,
+#   instaladores do Windows e do Mac (Intel e Apple Silicon) e os testes de instalação
+#   (E2E-013 no Windows, E2E-014 no Mac) sobre os instaladores gerados.
+# - Só na tag, e só com tudo verde, um único job cria a Release com os três instaladores.
+#   Sob demanda (workflow_dispatch), nada é publicado: os instaladores ficam como artefatos.
 name: Release
 
 on:
@@ -12,7 +17,7 @@ permissions:
   contents: write
 
 jobs:
-  release:
+  instaladores:
     name: Instalador ${{ matrix.name }}
     strategy:
       fail-fast: false
@@ -20,11 +25,21 @@ jobs:
         include:
           - name: Windows
             os: windows-latest
-            dist: npx electron-builder --win --x64 --publish always
-          - name: Mac
+            artifact: instalador-windows
+            files: dist/*-win-x64.exe
+            dist: npx electron-builder --win --x64 --publish never
+          - name: Mac Intel
+            os: macos-15-intel
+            artifact: instalador-mac-x64
+            files: dist/*-mac-x64.dmg
+            dist: npx electron-builder --mac --x64 --publish never
+          - name: Mac Apple Silicon
             os: macos-latest
-            dist: npx electron-builder --mac --x64 --arm64 --publish always
+            artifact: instalador-mac-arm64
+            files: dist/*-mac-arm64.dmg
+            dist: npx electron-builder --mac --arm64 --publish never
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
 
@@ -46,8 +61,13 @@ jobs:
       - name: Instalar dependências
         run: npm ci
 
+      - name: Modelos em cache
+        uses: actions/cache@v4
+        with:
+          path: .cache/modelos
+          key: modelos-${{ hashFiles('scripts/baixar-modelos.mjs') }}
+
       - name: Baixar os modelos de voz
-        if: hashFiles('scripts/baixar-modelos.mjs') != ''
         run: node scripts/baixar-modelos.mjs
 
       - name: Testes
@@ -58,5 +78,129 @@ jobs:
 
       - name: Instaladores
         run: ${{ matrix.dist }}
+
+      # E2E-013, passo 3: uma outra versão de teste para instalar por cima da 1.0.0.
+      - name: Instalador de teste para instalar por cima
+        if: matrix.name == 'Windows'
+        shell: bash
+        run: npx electron-builder --win --x64 --publish never -c.extraMetadata.version=0.0.1-teste -c.directories.output=dist-teste
+
+      - name: Guardar o instalador
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: ${{ matrix.files }}
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Guardar o instalador de teste
+        if: matrix.name == 'Windows'
+        uses: actions/upload-artifact@v4
+        with:
+          name: instalador-windows-teste
+          path: dist-teste/*.exe
+          if-no-files-found: error
+          retention-days: 3
+
+  instalar-windows:
+    name: Instalar no Windows (E2E-013)
+    needs: instaladores
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: instalador-windows
+          path: instalador
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: instalador-windows-teste
+          path: instalador-teste
+
+      - name: Instalar, abrir sem rede e instalar por cima
+        shell: bash
+        run: |
+          export TP_INSTALLER="$(ls "$PWD"/instalador/*.exe)"
+          export TP_INSTALLER_OVER="$(ls "$PWD"/instalador-teste/*.exe)"
+          npx playwright test -c playwright.instalacao.config.ts tests/instalacao/windows.spec.ts
+
+  instalar-mac:
+    name: Abrir o DMG no Mac ${{ matrix.name }} (E2E-014)
+    needs: instaladores
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Intel
+            os: macos-15-intel
+            artifact: instalador-mac-x64
+          - name: Apple Silicon
+            os: macos-latest
+            artifact: instalador-mac-arm64
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: instalador
+
+      - name: Montar o DMG, copiar o app e abrir
+        run: |
+          export TP_DMG="$(ls "$PWD"/instalador/*.dmg)"
+          npx playwright test -c playwright.instalacao.config.ts tests/instalacao/mac.spec.ts
+
+  publicar:
+    name: Publicar a Release
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: [instaladores, instalar-windows, instalar-mac]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: instalador-*
+          path: instaladores
+          merge-multiple: false
+
+      - name: Notas da versão a partir do CHANGELOG
+        run: |
+          VERSAO="${GITHUB_REF_NAME#v}"
+          awk -v v="$VERSAO" '$0 ~ "^## "v" " {on=1; next} /^## / {if (on) exit} on' CHANGELOG.md > notas.md
+          test -s notas.md
+
+      - name: Criar a Release com os três instaladores
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSAO="${GITHUB_REF_NAME#v}"
+          gh release create "$GITHUB_REF_NAME" \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "Teleprompter $VERSAO" \
+            --notes-file notas.md \
+            --latest \
+            "instaladores/instalador-windows/Teleprompter-$VERSAO-win-x64.exe" \
+            "instaladores/instalador-mac-x64/Teleprompter-$VERSAO-mac-x64.dmg" \
+            "instaladores/instalador-mac-arm64/Teleprompter-$VERSAO-mac-arm64.dmg"

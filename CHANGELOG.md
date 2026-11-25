@@ -18,7 +18,10 @@ Primeira versão do Teleprompter da Chiaro Filmes, para Windows e Mac.
 - A rolagem por voz liga pelo botão Voz ou pela tecla V: o texto acompanha a leitura, espera quando você improvisa ou faz uma pausa e nunca volta sozinho. Ligar a voz pausa a rolagem automática, e iniciar a automática desliga a voz. Os botões, as teclas e o pedal valem sempre por cima, e a voz continua dali.
 - Na aba Voz você escolhe o microfone (inclusive cada entrada de uma interface de áudio), confere o nível num medidor, escolhe o motor (Vosk ou Parakeet, onde ele roda) e o modo ("Perto" ou "Pulos para a frente"). Tudo fica guardado neste computador.
 - O estado da voz aparece ao lado das ações, com texto e cor: Preparando, Ouvindo, Esperando ou Falhou. Se o microfone cair, o reconhecimento parar ou o computador não der conta, uma faixa vermelha diz o motivo, o texto fica parado e visível nas saídas, e a voz volta sozinha quando o problema se resolve.
-- - Fechar a tela de controle fecha o programa e todas as saídas, perguntando antes se há alterações não salvas.
+- Fechar a tela de controle fecha o programa e todas as saídas, perguntando antes se há alterações não salvas.
+- Quando sai uma versão nova, a tela de controle avisa ao abrir, com "Baixar e instalar" (baixa o instalador para a pasta Downloads, mostra o andamento e o abre) e "Fechar" (o aviso volta só na próxima abertura). Sem internet, nada aparece e o programa funciona igual. As saídas nunca mostram o aviso.
+- A aba Sobre mostra a versão, o motor de voz em uso, o atraso médio da voz e o botão "Abrir pasta de registros", para relatar problemas.
+- "Voltar ao padrão", na aba Sobre, pede confirmação e devolve velocidade 1,00x, voz no modo "Perto" com o Vosk, atalhos padrão e saídas sem inversão.
 - Tem ícone próprio de teleprompter no menu Iniciar, no Dock e nos arquivos de roteiro (`.roteiro`).
 - Instala no Windows com um instalador próprio e no Mac com uma imagem de disco para Intel e Apple Silicon.
 - Funciona sem internet: as fontes da Chiaro vão junto com o programa.

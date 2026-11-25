@@ -222,6 +222,18 @@ export interface DocState {
   pending: boolean;
 }
 
+/**
+ * Aviso de versão nova na tela de controle (US-038). Acréscimo à TechSpec (tarefa 7): além
+ * de `version` e `url`, o progresso do download (0 a 100, `null` antes de baixar) e o erro
+ * do download, para a tela mostrar o andamento e "Não foi possível baixar a versão nova".
+ */
+export interface UpdateView {
+  version: string;
+  url: string;
+  progress: number | null;
+  error: string | null;
+}
+
 export interface StateSnapshot {
   doc: DocState;
   appearance: Appearance;
@@ -237,7 +249,7 @@ export interface StateSnapshot {
    * atalhos leem daqui, e não do padrão.
    */
   keymap: Keymap;
-  update: { version: string; url: string } | null;
+  update: UpdateView | null;
   notices: Notice[];
   /** Pergunta pendente que nasceu no principal (duplo clique, fechar, recuperação). */
   prompt: DocPrompt | null;

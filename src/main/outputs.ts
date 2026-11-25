@@ -241,6 +241,20 @@ export class OutputManager {
   }
 
   /**
+   * "Voltar ao padrão" (US-036 AC-2): as saídas abertas ficam sem inversão na hora, e só
+   * elas (e as caídas esperando o monitor) voltam a ser lembradas, já sem inversão.
+   */
+  resetInversions(): void {
+    for (const out of this.outputsById.values()) {
+      out.info.mirrorH = false;
+      out.info.flipV = false;
+      if (out.info.state !== 'closed') this.saveOutput(out.info);
+      this.sendView(out);
+    }
+    this.o.onChange?.();
+  }
+
+  /**
    * Abertura do programa (US-020): reabre, sem o número, as saídas guardadas cujo monitor
    * está ligado. As outras ficam `down` em silêncio e reabrem quando o monitor aparecer.
    * Um monitor guardado que agora é o da tela de controle não recebe saída.
