@@ -148,11 +148,13 @@ test('E2E-005 gravar com operador: velocidade, roda, Descer e Home', async () =>
       await page.waitForTimeout(300);
     }
 
-    // 4. A roda sobre a prévia move as três juntas.
-    const before = (await syncedPositions([page]))[0];
+    // 4. Com a automática ligada, a roda sobre a prévia muda a velocidade (dois cliques: 2,00x),
+    //    e as três continuam juntas.
     await page.getByTestId('preview').hover();
-    await page.mouse.wheel(0, 600);
-    await expect.poll(async () => (await syncedPositions([page]))[0] - before).toBeGreaterThan(150);
+    await page.mouse.wheel(0, 100);
+    await page.mouse.wheel(0, 100);
+    await expect(page.getByTestId('speed')).toHaveText('2,00x');
+    await page.waitForTimeout(500);
     await expectInSync([page, b, c]);
 
     // 5. Pausar e "Descer" 3 cliques: 3 linhas.
