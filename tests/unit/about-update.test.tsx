@@ -56,7 +56,7 @@ describe('aba Sobre', () => {
     const { bridge } = renderApp(snapshotWith({ voice: { state: 'listening', fault: null, engine: 'vosk', mode: 'near', lagMs: 820 } }));
     fireEvent.click(screen.getByRole('tab', { name: 'Sobre' }));
     expect(screen.getByTestId('about-version')).toHaveTextContent(`v${__APP_VERSION__}`);
-    expect(screen.getByTestId('about-version')).toHaveTextContent('v1.0.0');
+    expect(screen.getByTestId('about-version')).toHaveTextContent('v1.1.0');
     expect(screen.getByTestId('about-engine')).toHaveTextContent('Vosk');
     expect(screen.getByTestId('about-lag')).toHaveTextContent('0,8 s');
 

@@ -50,6 +50,7 @@ export interface WindowLike {
   setBounds(bounds: Partial<Rect>): void;
   setFullScreen(flag: boolean): void;
   isFullScreen(): boolean;
+  setAlwaysOnTop(flag: boolean, level?: 'screen-saver'): void;
   isMinimized(): boolean;
   restore(): void;
   setSimpleFullScreen(flag: boolean): void;

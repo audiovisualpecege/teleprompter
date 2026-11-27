@@ -233,6 +233,27 @@ export function track(input: TrackerInput, params: TrackerParams = DEFAULT_TRACK
 }
 
 /**
+ * Alvo da rolagem para o cursor (o último token lido): a linha dele sobe na proporção do
+ * que já foi lido dela, e no fim da linha a seguinte já está na faixa. Assim a faixa fica
+ * no que a pessoa está lendo, e não na linha que ela acabou de ler. Na última linha, o
+ * alvo é a própria linha. Sem linha para o cursor, devolve `null`.
+ */
+export function voiceTargetY(
+  tokens: readonly ScriptToken[],
+  lines: readonly Pick<LayoutLine, 'start' | 'end' | 'y'>[],
+  cursor: number,
+): number | null {
+  const token = tokens[cursor];
+  const line = token ? lines[token.line] : undefined;
+  if (!token || !line) return null;
+  const next = lines[token.line + 1];
+  if (!next) return line.y;
+  const len = line.end - line.start;
+  const read = len > 0 ? Math.min(1, Math.max(0, (token.end - line.start) / len)) : 1;
+  return line.y + read * (next.y - line.y);
+}
+
+/**
  * Depois de um comando manual ou de voltar ao início: o cursor fica no token anterior
  * ao primeiro token da linha que está na faixa, para a voz procurar a partir dali.
  * Sem token na linha ou depois dela, o cursor vai ao último token. Nunca é negativo.

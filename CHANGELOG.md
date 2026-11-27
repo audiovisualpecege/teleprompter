@@ -3,6 +3,15 @@
 Todas as versões do Teleprompter, com o que muda para quem usa.
 A versão segue o padrão MAJOR.MINOR.PATCH e mora só no `version` do `package.json`.
 
+## 1.1.0 (2026-11-27)
+
+Correções e ajustes pedidos depois do uso no estúdio.
+
+- Rolagem por voz: a faixa agora fica no que você está lendo. Antes o texto só subia depois que você já estava na linha de baixo, e parecia sempre atrasado, mesmo abaixando a faixa. Agora a linha sobe conforme você a lê, e ao terminar a linha a seguinte já está na faixa.
+- Roda do mouse sobre a prévia: com a rolagem automática ligada, ela muda a velocidade (para baixo, mais rápido; para cima, mais devagar; 0,25x por clique). Com a automática parada ou com a voz, continua movendo o texto.
+- Tamanho do texto vai até 300 (antes, 200).
+- Windows: a barra de tarefas não deve mais aparecer por cima da saída de TP no monitor do TP (o caso visto no TP USB da Elgato), mesmo com o foco na tela de controle.
+
 ## 1.0.0 (2026-11-25)
 
 Primeira versão do Teleprompter da Chiaro Filmes, para Windows e Mac.

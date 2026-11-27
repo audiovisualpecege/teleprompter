@@ -18,6 +18,8 @@ export interface FakeWindow extends WindowLike {
   fullScreen: boolean;
   /** Chamadas a `setFullScreen`/`setSimpleFullScreen(true)`. */
   fullScreenCalls: number;
+  /** Nível do último `setAlwaysOnTop(true, nível)`, ou `null` sem ele. */
+  alwaysOnTop: string | null;
   emit(event: string, ...args: unknown[]): void;
   /** Emite um evento na `webContents` (`did-finish-load`, `before-input-event`). */
   emitWeb(event: string, ...args: unknown[]): void;
@@ -64,6 +66,7 @@ function fakeWindow(id: number, options: Record<string, unknown>): FakeWindow {
     loaded: null,
     fullScreen: Boolean(options.fullscreen || options.simpleFullscreen),
     fullScreenCalls: 0,
+    alwaysOnTop: null,
     webContents: {
       id: 1000 + id,
       send: (channel, ...args) => {
@@ -101,6 +104,7 @@ function fakeWindow(id: number, options: Record<string, unknown>): FakeWindow {
       if (flag) win.fullScreenCalls++;
     },
     isFullScreen: () => win.fullScreen,
+    setAlwaysOnTop: (flag, level) => void (win.alwaysOnTop = flag ? (level ?? 'floating') : null),
     isMinimized: () => minimized,
     restore: () => void (minimized = false),
     setBackgroundColor: (c) => void (options.backgroundColor = c),

@@ -87,7 +87,21 @@ export function createOutputWindow(
       spellcheck: false,
     },
   });
-  win.once('ready-to-show', () => win.show());
+  keepAboveTaskbar(win, opts);
+  win.once('ready-to-show', () => {
+    win.show();
+    // Se a tela cheia pedida na criação não pegou, pede de novo ao mostrar.
+    if ((opts.fullscreen ?? true) && !opts.isMac && !win.isFullScreen()) win.setFullScreen(true);
+  });
   void loadPage(win, paths, 'output');
   return win;
+}
+
+/**
+ * No Windows, a tela cheia só esconde a barra de tarefas enquanto a janela está em foco, e o
+ * foco fica na tela de controle: a barra voltava por cima do texto no monitor do TP. Sempre
+ * por cima, a saída fica acima da barra. No Mac a tela cheia simples já esconde a barra.
+ */
+export function keepAboveTaskbar(win: WindowLike, opts: Pick<OutputWindowOptions, 'isMac' | 'fullscreen'>): void {
+  if ((opts.fullscreen ?? true) && !opts.isMac) win.setAlwaysOnTop(true, 'screen-saver');
 }

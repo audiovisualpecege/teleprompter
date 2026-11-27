@@ -242,6 +242,26 @@ describe('VoiceController: ligar e desligar seguidos, automática e fim do texto
     expect(v.state()).toBe('waiting');
     expect(segmentTarget(v.store.engine.segment)).toBe(lineY(v, 3));
   });
+
+  it('Correção 1: ao ler a última palavra de uma linha, a linha seguinte já vai para a faixa', async () => {
+    const v = await createTestVoice();
+    await v.listen();
+    v.clock.advance(400);
+    v.hear('o', 'teleprompter', 'da', 'chiaro', 'acompanha');
+    expect(v.vc.trackerCursor).toBe(4);
+    expect(segmentTarget(v.store.engine.segment)).toBeCloseTo(lineY(v, 1), 3);
+  });
+
+  it('Correção 1: no meio de uma linha, o texto sobe na proporção do que já foi lido dela', async () => {
+    const v = await createTestVoice();
+    await v.listen();
+    v.clock.advance(400);
+    v.hear('chiaro', 'acompanha', 'a', 'leitura', 'de', 'quem');
+    expect(v.vc.trackerCursor).toBe(8);
+    const y = segmentTarget(v.store.engine.segment);
+    expect(y).toBeGreaterThan(lineY(v, 1));
+    expect(y).toBeLessThan(lineY(v, 2));
+  });
 });
 
 describe('VoiceController: microfone, modo, motor, sinal e vocabulário', () => {

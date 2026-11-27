@@ -84,7 +84,7 @@ export const VOICE_SIGNAL_EDGE = 24;
 
 /** Limites da aparência. */
 export const FONT_SIZE_MIN = 20;
-export const FONT_SIZE_MAX = 200;
+export const FONT_SIZE_MAX = 300;
 export const MARGIN_PCT_MIN = 0;
 export const MARGIN_PCT_MAX = 40;
 export const BAND_POSITION_PCT_MIN = 10;

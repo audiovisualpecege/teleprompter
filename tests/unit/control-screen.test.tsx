@@ -57,16 +57,16 @@ describe('ControlApp: aparência', () => {
     expect(screen.getByText('O texto pode ficar ilegível com estas cores')).toBeInTheDocument();
   });
 
-  it('UT-232 o tamanho "250" vira 200 ao sair do campo; "abc" volta ao valor anterior', () => {
+  it('UT-232 o tamanho "350" vira 300 ao sair do campo; "abc" volta ao valor anterior', () => {
     const { bridge } = renderApp();
     const size = screen.getByLabelText('Tamanho') as HTMLInputElement;
     expect(size.value).toBe('80');
 
     fireEvent.focus(size);
-    fireEvent.change(size, { target: { value: '250' } });
+    fireEvent.change(size, { target: { value: '350' } });
     fireEvent.blur(size);
-    expect(size.value).toBe('200');
-    expect(bridge.invokes.filter((i) => i.channel === 'cmd:appearance').map((i) => i.payload)).toEqual([{ fontSize: 200 }]);
+    expect(size.value).toBe('300');
+    expect(bridge.invokes.filter((i) => i.channel === 'cmd:appearance').map((i) => i.payload)).toEqual([{ fontSize: 300 }]);
 
     bridge.invokes.length = 0;
     fireEvent.focus(size);
@@ -116,6 +116,37 @@ describe('ControlApp: prévia e editor', () => {
     bridge.sends.length = 0;
     fireEvent.wheel(screen.getByLabelText('Texto do roteiro'), { deltaY: 120 });
     expect(sendsOn(bridge, 'cmd:scroll')).toEqual([]);
+  });
+
+  it('Correção 1: com a automática ligada, cada clique da roda muda a velocidade em 0,25x, sem mover o texto', () => {
+    const { bridge } = renderApp(createFakeBridge(), snapshotWith({ automation: 'auto', speed: 1 }));
+    const preview = screen.getByTestId('preview');
+    const speeds = () => sendsOn(bridge, 'cmd:scroll').map((s) => s.payload);
+    // Roda para baixo: mais rápido, um passo por clique, mesmo antes de o estado voltar.
+    fireEvent.wheel(preview, { deltaY: 100 });
+    fireEvent.wheel(preview, { deltaY: 100 });
+    expect(speeds()).toEqual([
+      { type: 'setSpeed', speed: 1.25 },
+      { type: 'setSpeed', speed: 1.5 },
+    ]);
+    // Roda para cima: mais devagar, a partir da velocidade do estado.
+    bridge.sends.length = 0;
+    bridge.emit('state:snapshot', snapshotWith({ automation: 'auto', speed: 1.5 }));
+    fireEvent.wheel(preview, { deltaY: -100 });
+    expect(speeds()).toEqual([{ type: 'setSpeed', speed: 1.25 }]);
+    // Movimentos pequenos (touchpad) somam até valer um clique.
+    bridge.sends.length = 0;
+    bridge.emit('state:snapshot', snapshotWith({ automation: 'auto', speed: 1.25 }));
+    fireEvent.wheel(preview, { deltaY: 40 });
+    fireEvent.wheel(preview, { deltaY: 40 });
+    expect(speeds()).toEqual([]);
+    fireEvent.wheel(preview, { deltaY: 40 });
+    expect(speeds()).toEqual([{ type: 'setSpeed', speed: 1.5 }]);
+    // No limite, a roda não manda nada.
+    bridge.sends.length = 0;
+    bridge.emit('state:snapshot', snapshotWith({ automation: 'auto', speed: 3 }));
+    fireEvent.wheel(preview, { deltaY: 100 });
+    expect(speeds()).toEqual([]);
   });
 
   it('UT-235 a prévia desenha as linhas-guia em marginPct e 100 - marginPct da largura', () => {

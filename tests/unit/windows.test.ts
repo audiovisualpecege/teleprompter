@@ -45,6 +45,29 @@ describe('janelas', () => {
     expect(w.loaded).toBe('http://localhost:5173/output/index.html');
   });
 
+  it('Correção 1: no Windows, a saída em tela cheia fica acima da barra de tarefas do monitor do TP', () => {
+    const platform = createFakePlatform([fakeDisplay(1, 'A'), fakeDisplay(2, 'B', 1920)]);
+    createOutputWindow(platform, paths, { bounds: platform.displays[1].bounds, backgroundColor: '#000000', isMac: false });
+    expect(platform.created[0].alwaysOnTop).toBe('screen-saver');
+  });
+
+  it('Correção 1: no Windows, a saída que não entrou em tela cheia ao nascer entra ao ser mostrada', () => {
+    const platform = createFakePlatform([fakeDisplay(1, 'A'), fakeDisplay(2, 'B', 1920)]);
+    createOutputWindow(platform, paths, { bounds: platform.displays[1].bounds, backgroundColor: '#000000', isMac: false });
+    const w = platform.created[0];
+    w.fullScreen = false;
+    w.emit('ready-to-show');
+    expect(w.fullScreen).toBe(true);
+  });
+
+  it('Correção 1: no Mac e nos monitores virtuais de teste, a saída não fica sempre por cima', () => {
+    const platform = createFakePlatform([fakeDisplay(1, 'A'), fakeDisplay(2, 'B', 1920)]);
+    const bounds = platform.displays[1].bounds;
+    createOutputWindow(platform, paths, { bounds, backgroundColor: '#000000', isMac: true });
+    createOutputWindow(platform, paths, { bounds, backgroundColor: '#000000', isMac: false, fullscreen: false });
+    expect(platform.created.map((w) => w.alwaysOnTop)).toEqual([null, null]);
+  });
+
   it('plataforma falsa: monitores ligam e desligam com eventos', () => {
     const platform = createFakePlatform();
     const seen: string[] = [];

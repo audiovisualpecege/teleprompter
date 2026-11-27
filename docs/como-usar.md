@@ -2,7 +2,7 @@
 
 O Teleprompter da Chiaro Filmes passa o roteiro nos monitores de TP do estúdio, com a rolagem feita por um operador ou acompanhando a sua voz. Funciona sem internet, no Windows e no Mac.
 
-Versão deste guia: 1.0.0.
+Versão deste guia: 1.1.0.
 
 ## 1. Baixar o instalador
 
@@ -10,9 +10,9 @@ Os instaladores ficam na página de versões do programa: <https://github.com/au
 
 | Computador | Arquivo |
 |---|---|
-| Windows 10 ou 11 (64 bits) | `Teleprompter-1.0.0-win-x64.exe` |
-| Mac com Apple Silicon (M1, M2, M3, M4) | `Teleprompter-1.0.0-mac-arm64.dmg` |
-| Mac com processador Intel | `Teleprompter-1.0.0-mac-x64.dmg` |
+| Windows 10 ou 11 (64 bits) | `Teleprompter-1.1.0-win-x64.exe` |
+| Mac com Apple Silicon (M1, M2, M3, M4) | `Teleprompter-1.1.0-mac-arm64.dmg` |
+| Mac com processador Intel | `Teleprompter-1.1.0-mac-x64.dmg` |
 
 No Mac, para saber qual é o seu: menu Apple, "Sobre Este Mac". Se aparecer "Chip Apple M...", use o `arm64`; se aparecer "Processador Intel", use o `x64`.
 
@@ -20,7 +20,7 @@ O instalador já traz tudo, inclusive o reconhecimento de voz. Depois de instala
 
 ## 2. Instalar no Windows
 
-1. Abra `Teleprompter-1.0.0-win-x64.exe`.
+1. Abra `Teleprompter-1.1.0-win-x64.exe`.
 2. O instalador não tem assinatura de código, então o Windows pode mostrar a tela azul "O Windows protegeu o computador". Clique em **Mais informações** e depois em **Executar assim mesmo**. Isso só acontece na primeira vez.
 3. Escolha a pasta (ou deixe a sugerida) e conclua.
 4. O Teleprompter aparece no menu Iniciar e na Área de Trabalho, com o ícone do teleprompter.
@@ -55,7 +55,7 @@ Na primeira abertura, a tela de controle mostra os três passos: colar ou import
 
 1. Cole o texto no editor, à direita, ou use **Importar** para trazer um `.txt` ou `.docx`. Do `.docx` vem só o texto; tabelas e imagens ficam de fora, e o programa avisa o que deixou de fora.
 2. Clique em **Confirmar alterações**. Só o texto confirmado vai para a prévia e para as saídas. Enquanto você edita, as saídas continuam no texto anterior, sem pular; **Descartar** volta ao texto confirmado.
-3. Na aba **Aparência**, escolha a fonte, o tamanho, as cores do texto, do fundo e da faixa de leitura, a caixa, o alinhamento, as margens e a posição da faixa. A prévia mostra o resultado na hora.
+3. Na aba **Aparência**, escolha a fonte, o tamanho (de 20 a 300), as cores do texto, do fundo e da faixa de leitura, a caixa, o alinhamento, as margens e a posição da faixa. A prévia mostra o resultado na hora.
 4. **Salvar** grava o roteiro como arquivo `.roteiro`, com o texto e a aparência. Dois cliques num `.roteiro` abrem o programa com ele pronto.
 
 Se o programa fechar sem salvar (queda de energia, por exemplo), na próxima abertura ele oferece recuperar o texto.
@@ -79,7 +79,7 @@ Use os botões grandes abaixo da prévia ou os atalhos:
 
 - **Iniciar** e **Pausar** a rolagem automática.
 - **-** e **+** mudam a velocidade (de 0,25x a 3,00x, de 0,25 em 0,25). A velocidade fica guardada.
-- **Subir** e **Descer** movem uma linha. A roda do mouse sobre a prévia também rola.
+- **Subir** e **Descer** movem uma linha. A roda do mouse sobre a prévia também rola o texto; com a rolagem automática ligada, ela muda a velocidade (para baixo, mais rápido; para cima, mais devagar; 0,25x por clique).
 - **Voltar ao início** leva a primeira linha à faixa.
 
 Todas as telas (prévia e saídas) ficam sempre no mesmo ponto.
@@ -92,7 +92,7 @@ Todas as telas (prévia e saídas) ficam sempre no mesmo ponto.
    - **Perto** (padrão): o texto avança só um pouco à frente do que você lê.
    - **Pulos para a frente**: o texto também salta para uma frase dita com clareza mais à frente.
 4. Aperte **Voz** (ou a tecla **V**). O estado aparece ao lado das ações: **Preparando**, **Ouvindo**, **Esperando** (quando você improvisa ou pausa) ou **Falhou**.
-5. Leia normalmente. O texto acompanha a leitura, espera quando você sai do roteiro e nunca volta sozinho.
+5. Leia normalmente, na faixa. O texto acompanha a leitura: a linha sobe conforme você a lê, e ao terminar a linha a seguinte já está na faixa. Ele espera quando você sai do roteiro e nunca volta sozinho.
 
 Os botões, as teclas e o pedal valem sempre por cima da voz, e a voz continua dali. Ligar a voz pausa a rolagem automática, e iniciar a automática desliga a voz. Se o microfone cair ou o computador não der conta, uma faixa vermelha diz o motivo, o texto fica parado e visível nas saídas, e a voz volta sozinha quando o problema se resolve.
 
@@ -116,7 +116,7 @@ Os botões, as teclas e o pedal valem sempre por cima da voz, e a voz continua d
 
 ## 10. Versão, versão nova e voltar ao padrão
 
-- A versão aparece no canto inferior direito da tela de controle (por exemplo, `v1.0.0`) e na aba **Sobre**.
+- A versão aparece no canto inferior direito da tela de controle (por exemplo, `v1.1.0`) e na aba **Sobre**.
 - Quando sai uma versão nova, a tela de controle avisa ao abrir. **Baixar e instalar** baixa o instalador para a pasta Downloads e o abre; siga o instalador como na primeira vez. **Fechar** esconde o aviso até a próxima abertura. Sem internet, nada aparece. As saídas nunca mostram o aviso.
 - A aba **Sobre** mostra também o motor de voz em uso, o atraso médio da voz e o botão **Abrir pasta de registros**. Ao relatar um problema, diga a versão e envie os arquivos dessa pasta.
 - **Voltar ao padrão**, na aba Sobre, pede confirmação e devolve todos os ajustes deste computador: velocidade 1,00x, voz no modo "Perto" com o Vosk, atalhos padrão e saídas sem inversão. Os roteiros salvos não mudam.
@@ -127,7 +127,7 @@ Faça esta conferência na instalação de cada estúdio e a cada versão nova, 
 
 **Instalação**
 
-- [ ] O programa instala e abre no tema escuro, com `v1.0.0` no canto inferior direito.
+- [ ] O programa instala e abre no tema escuro, com `v1.1.0` no canto inferior direito.
 - [ ] O atalho do menu Iniciar (Windows) ou o Dock (Mac) mostra o ícone do teleprompter.
 - [ ] Com o cabo de rede desligado e o Wi-Fi desligado, o programa abre e a voz chega a "Ouvindo".
 

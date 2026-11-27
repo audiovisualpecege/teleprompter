@@ -62,7 +62,7 @@ import {
 import type { Scheduler, ScrollApplyResult } from './scroll-engine';
 import type { LogFn, SettingsStore } from './settings';
 import type { AppStore, LayoutKind } from './store';
-import { buildScriptTokens, resyncFromBand, track } from './voice-tracker';
+import { buildScriptTokens, resyncFromBand, track, voiceTargetY } from './voice-tracker';
 import { LagLog, logEngineRestart } from './voice-log';
 
 /** Esperas antes de cada reinício do motor (US-034; TechSpec, "Causas resolvidas"). */
@@ -326,8 +326,8 @@ export class VoiceController {
     });
     if (!r.matched || r.cursor <= this.cursor) return;
     this.cursor = r.cursor;
-    const line = this.layout?.lines[this.tokens[this.cursor].line];
-    if (line) store.scroll({ type: 'voiceTarget', y: line.y });
+    const y = voiceTargetY(this.tokens, this.layout?.lines ?? [], this.cursor);
+    if (y !== null) store.scroll({ type: 'voiceTarget', y });
     if (this.cursor >= this.tokens.length - 1) {
       // Fim do texto: a última linha fica na faixa e a voz continua ligada, esperando (US-030 EC-6).
       this.cancelWaiting();

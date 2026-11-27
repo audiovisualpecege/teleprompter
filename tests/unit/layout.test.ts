@@ -62,9 +62,9 @@ describe('layout', () => {
     expect(text.slice(r.lines[0].start, r.lines[0].end)).toBe('Ação');
   });
 
-  it('UT-016 layout: margem 40% e fonte 200 deixam ao menos uma palavra por linha', () => {
+  it.each([200, 300])('UT-016 layout: margem 40% e fonte %i deixam ao menos uma palavra por linha', (fontSize) => {
     const text = 'Uma frase com palavras curtas e uma muito comprida: inconstitucionalissimamenteeeeeeeeeeeeeeeee fim';
-    const r = layoutScript(text, look({ marginPct: 40, fontSize: 200 }), measure10);
+    const r = layoutScript(text, look({ marginPct: 40, fontSize }), measure10);
     expect(r.lines.length).toBeGreaterThan(1);
     for (const line of r.lines) {
       expect(line.text.trim().length).toBeGreaterThan(0);

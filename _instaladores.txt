@@ -1,7 +1,7 @@
-# Instaladores do Teleprompter v1.0.0 (um produto Chiaro Filmes)
+# Instaladores do Teleprompter v1.1.0 (um produto Chiaro Filmes)
 # Gerados pelo workflow "Release" (.github/workflows/release.yml) a cada tag de versão e publicados
 # no Release da versão em github.com/audiovisualpecege/teleprompter. O reconhecimento de voz vai junto.
 # Sem assinatura de código: a liberação na primeira abertura está no Como usar (docs/como-usar.md, etapas 2 e 3).
-https://github.com/audiovisualpecege/teleprompter/releases/download/v1.0.0/Teleprompter-1.0.0-win-x64.exe | Windows 10 e 11 (64 bits), instalador
-https://github.com/audiovisualpecege/teleprompter/releases/download/v1.0.0/Teleprompter-1.0.0-mac-arm64.dmg | macOS com Apple Silicon (M1 ou mais novo), imagem de disco
-https://github.com/audiovisualpecege/teleprompter/releases/download/v1.0.0/Teleprompter-1.0.0-mac-x64.dmg | macOS com processador Intel, imagem de disco
+https://github.com/audiovisualpecege/teleprompter/releases/download/v1.1.0/Teleprompter-1.1.0-win-x64.exe | Windows 10 e 11 (64 bits), instalador
+https://github.com/audiovisualpecege/teleprompter/releases/download/v1.1.0/Teleprompter-1.1.0-mac-arm64.dmg | macOS com Apple Silicon (M1 ou mais novo), imagem de disco
+https://github.com/audiovisualpecege/teleprompter/releases/download/v1.1.0/Teleprompter-1.1.0-mac-x64.dmg | macOS com processador Intel, imagem de disco

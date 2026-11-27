@@ -155,9 +155,9 @@ describe('ScriptFiles: abrir', () => {
     expect(t.last().notices.at(-1)?.message).toMatch(/versão mais nova/);
   });
 
-  it('UT-175 open com fontSize 999 aplica 200', async () => {
+  it('UT-175 open com fontSize 999 aplica 300', async () => {
     const r = await files.read(join(FIX, 'fonte-grande.roteiro'));
-    expect(r.ok && r.value.appearance.fontSize).toBe(200);
+    expect(r.ok && r.value.appearance.fontSize).toBe(300);
     expect(r.ok && r.value.appearance.textColor).toBe(DEFAULT_APPEARANCE.textColor);
   });
 });

@@ -35,7 +35,7 @@ import type { Platform, PlatformDisplay, Rect, WindowLike } from './platform';
 import { PowerGuard } from './power';
 import type { Scheduler } from './scroll-engine';
 import type { LogFn, SettingsStore } from './settings';
-import { createOutputWindow, type WindowPaths } from './windows';
+import { createOutputWindow, keepAboveTaskbar, type WindowPaths } from './windows';
 
 /** Onde a janela de uma saída fica: os `bounds` do monitor em tela cheia, ou um retângulo (monitores virtuais). */
 export interface OutputPlacement {
@@ -478,6 +478,7 @@ export class OutputManager {
     if (place.fullscreen && (leftFullScreen || moved)) {
       if (this.o.isMac) win.setSimpleFullScreen(true);
       else win.setFullScreen(true);
+      keepAboveTaskbar(win, { isMac: this.o.isMac, fullscreen: place.fullscreen });
     }
   }
 

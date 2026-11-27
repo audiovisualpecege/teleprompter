@@ -137,13 +137,15 @@ describe('IT-024 voz e comando manual no mesmo instante', () => {
     const s = await setup();
     await s.listen();
     s.t.clock.advance(400);
-    // A leitura vai pela linha 1, com hipóteses a cada 100 ms.
+    // A leitura vai pela linha 1, até a penúltima palavra, com hipóteses a cada 100 ms.
     const words = `${LINES[0]} ${LINES[1]}`.split(' ');
-    for (let i = 3; i <= words.length; i++) {
+    for (let i = 3; i < words.length; i++) {
       s.hear(...words.slice(0, i));
       s.t.clock.advance(100);
     }
-    expect(segmentTarget(s.t.store.engine.segment)).toBe(s.lineY(1));
+    // A linha 1 sobe na proporção do que já foi lido dela.
+    expect(segmentTarget(s.t.store.engine.segment)).toBeGreaterThan(s.lineY(1));
+    expect(segmentTarget(s.t.store.engine.segment)).toBeLessThan(s.lineY(2));
     // O operador desce uma linha no meio das hipóteses.
     s.t.clock.advance(1000);
     const manualAt = s.t.clock.now;
@@ -166,9 +168,11 @@ describe('IT-024 voz e comando manual no mesmo instante', () => {
     s.t.clock.advance(MANUAL_PRIORITY_MS);
     s.hear(...line3.slice(0, 4));
     expect(s.voice.trackerCursor).toBe(tokensBeforeLine2 + 3);
-    expect(segmentTarget(s.t.store.engine.segment)).toBe(s.lineY(2));
+    expect(segmentTarget(s.t.store.engine.segment)).toBeGreaterThan(s.lineY(2));
+    expect(segmentTarget(s.t.store.engine.segment)).toBeLessThan(s.lineY(3));
     s.t.clock.advance(200);
     s.hear(...line3, ...line4.slice(0, 3));
-    expect(segmentTarget(s.t.store.engine.segment)).toBe(s.lineY(3));
+    expect(segmentTarget(s.t.store.engine.segment)).toBeGreaterThan(s.lineY(3));
+    expect(segmentTarget(s.t.store.engine.segment)).toBeLessThan(s.lineY(4));
   });
 });

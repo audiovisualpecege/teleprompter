@@ -70,7 +70,7 @@ describe('SettingsStore', () => {
     const { settings, corrupt } = store().load();
     expect(corrupt).toBe(false);
     expect(settings.speed).toBe(3);
-    expect(settings.lastAppearance.fontSize).toBe(200);
+    expect(settings.lastAppearance.fontSize).toBe(300);
     expect(settings.lastAppearance.marginPct).toBe(0);
     expect(settings.lastAppearance.bandPositionPct).toBe(60);
     expect(settings.voiceEngine).toBe('vosk');
